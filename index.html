@@ -31,13 +31,13 @@ h1{margin:0;font:800 34px/1 Georgia,serif;letter-spacing:-1px}h1 i{color:var(--a
 #cx{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:7;background:#7f1d1d;border-color:#ef4444;font-weight:700}
 .pv{position:absolute;pointer-events:none;z-index:6;white-space:nowrap;background:#000c;border:1px solid var(--ac);border-radius:8px;padding:3px 8px;font-size:12px;font-weight:700;transform:translate(14px,-36px)}
 #help{position:absolute;left:10px;bottom:8px;pointer-events:none;text-shadow:0 1px 3px #000}
-#others{display:grid;gap:10px}
+#others{display:flex;flex-direction:column;gap:8px;height:min(76vh,760px);min-height:380px}#rtabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:4px;background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:4px;flex:none}#rtabs button{padding:7px 4px;font-size:12px;border:0;background:transparent;border-radius:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;gap:4px;align-items:center;justify-content:center}#rtabs button:hover{background:#222c3a}#rtabs button.on{background:var(--ac);color:var(--ink);font-weight:700}#rtabs .badge{margin:0;background:#0006;color:inherit}#rbody{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:grid;align-content:start;gap:10px;padding-right:2px}#bud .bl{display:grid;gap:3px}.br{position:relative;display:flex;justify-content:space-between;gap:8px;align-items:center;padding:4px 6px;border-radius:6px;font-size:13px;overflow:hidden}.br>span,.br>b{position:relative;z-index:1}.br>b{font-variant-numeric:tabular-nums;white-space:nowrap}.br i{position:absolute;left:6px;bottom:1px;height:3px;border-radius:2px;opacity:.55;max-width:calc(100% - 12px)}.br.rv i{background:#34d399}.br.co i{background:#f87171}.rv>b{color:#6ee7b7}.co>b{color:#fca5a5}.bt{display:flex;justify-content:space-between;gap:8px;font-weight:700;padding:6px;border-top:1px solid var(--ln);font-variant-numeric:tabular-nums}.bt.big{font-size:16px}.bt .pos{color:#6ee7b7}.bt .neg{color:#fca5a5}.bh{display:flex;justify-content:space-between;align-items:baseline;margin-top:6px}.bh b{font-size:14px}.tip{background:#1f2a38;border:1px solid var(--ln);border-radius:8px;padding:8px;font-size:12px}.tip.warn{border-color:#f59e0b;color:#fde68a}.sg{display:grid;grid-template-columns:1fr 1fr;gap:6px}.sg>div{background:#1f2a38;border-radius:8px;padding:6px 8px;font-size:12px}.sg b{display:block;font-size:15px}#spd{min-width:62px;font-weight:700}#spd.fast{background:#f59e0b;color:#1c1203;border-color:#f59e0b}#lgd{position:absolute;right:10px;top:10px;z-index:6;background:#000b;border:1px solid var(--ln);border-radius:10px;padding:8px 10px;font-size:12px;display:grid;gap:3px;pointer-events:none}#lgd i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
 .oc{background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:10px;display:grid;gap:6px}
 .oc h3{margin:0;font-size:15px}.oc label{display:flex;gap:6px;align-items:flex-start}.oc label select{margin-left:6px}
 .tr{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.tr input{width:62px;padding:6px}.tr select{padding:6px 2px}
 #toasts{position:fixed;right:12px;bottom:12px;display:grid;gap:8px;z-index:9;max-width:min(340px,92vw)}
 .t{background:#223044;border:1px solid var(--ac);border-radius:10px;padding:10px 12px;display:grid;gap:8px}
-@media(max-width:900px){#game{grid-template-columns:1fr}#tools{max-height:none}#tools .cb{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}}
+@media(max-width:900px){#game{grid-template-columns:1fr}#tools{max-height:none}#others{height:auto;min-height:0}#rbody{max-height:70vh}#tools .cb{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}}
 [hidden]{display:none!important}
 .modal{position:fixed;inset:0;background:#000b;display:grid;place-items:center;z-index:20;padding:12px}
 .ft{position:absolute;pointer-events:none;font-weight:700;text-shadow:0 1px 3px #000;animation:rise 1.1s ease-out forwards;z-index:5}
@@ -79,10 +79,10 @@ button:active{transform:scale(.96)}
 </div></div>
 
 <div id="game">
-  <div id="top"><div id="hud"></div><span id="rm"></span><select id="vw" title="Map overlay"><option value="">View: Normal</option><option value="z">View: Zones</option><option value="h">View: Happiness</option></select><button id="hm">🏠 My city</button><button id="md">✏️ Build mode</button><button id="cp">Copy invite link</button><button id="sm">📂 Saves</button><button id="mt" title="Sound">🔊</button><button id="lv">Leave</button></div>
+  <div id="top"><div id="hud"></div><span id="rm"></span><select id="vw" title="Map overlay"><option value="">View: Normal</option><option value="z">View: Zones</option><option value="h">View: Happiness</option><option value="r">View: Service ranges</option></select><button id="spd" title="Game speed (solo only)">▶ ×1</button><button id="hm">🏠 My city</button><button id="md">✏️ Build mode</button><button id="cp">Copy invite link</button><button id="sm">📂 Saves</button><button id="mt" title="Sound">🔊</button><button id="lv">Leave</button></div>
   <div id="tools"><div id="sel"></div><button id="ex" class="pri"></button></div>
-  <div id="stage"><canvas id="cv"></canvas><div id="pv" class="pv" hidden></div><button id="cx" hidden>✖ Cancel build (Esc)</button><div id="help" class="mu">Drag to preview, release to build · Esc or right-click cancels · Right-drag: look · WASD: move</div></div>
-  <div id="others"><div class="oc" id="pol"><h3>🏛️ Policies</h3><div class="mu" id="pinfo"></div><label class="sel">Tax rate <select id="tx"><option value="0">Low (happier, less income)</option><option value="1">Normal</option><option value="2">High (more income, unhappy)</option></select></label><label class="sel">Services budget <select id="sv2"><option value="0">Low (-30% upkeep)</option><option value="1">Normal</option><option value="2">High (+40% upkeep)</option></select></label></div><details class="oc" id="fin" open><summary>💼 Finance</summary><div id="fb"></div></details><p class="mu" id="emp">Nobody else is here yet. Copy the invite link and send it to a friend.</p></div>
+  <div id="stage"><canvas id="cv"></canvas><div id="pv" class="pv" hidden></div><button id="cx" hidden>✖ Cancel build (Esc)</button><div id="lgd" hidden><b>Service ranges</b><span><i style="background:#3b82f6"></i>Police: stops crime</span><span><i style="background:#f97316"></i>Fire station: stops fires</span><span><i style="background:#5eead4"></i>Raises happiness</span><span><i style="background:#ef4444"></i>Pollution: lowers happiness</span></div><div id="help" class="mu">Drag to preview, release to build · Esc or right-click cancels · Right-drag: look · WASD: move</div></div>
+  <div id="others"><div id="rtabs" role="tablist"><button data-tab="bud" class="on" role="tab">📊 Budget</button><button data-tab="fin" role="tab">💼 Finance</button><button data-tab="pol" role="tab">🏛️ Policies</button><button data-tab="ply" role="tab" id="plyt">👥 Players <span class="badge" id="pcnt">0</span></button></div><div id="rbody"><div class="oc" id="bud"></div><div class="oc" id="pol" hidden><h3>🏛️ Policies</h3><div class="mu" id="pinfo"></div><label class="sel">Tax rate <select id="tx"><option value="0">Low (happier, less income)</option><option value="1">Normal</option><option value="2">High (more income, unhappy)</option></select></label><label class="sel">Services budget <select id="sv2"><option value="0">Low (-30% upkeep)</option><option value="1">Normal</option><option value="2">High (+40% upkeep)</option></select></label></div><div class="oc" id="fin" hidden><h3>💼 Finance</h3><div id="fb"></div></div><div id="ply" hidden><p class="mu" id="emp">Nobody else is here yet. Copy the invite link and send it to a friend.</p></div></div></div>
 </div>
 <div id="sv" class="modal" hidden><div class="box" style="width:min(480px,100%)"><h2 style="margin:0">📂 Saved cities</h2><div id="sl" style="display:grid;gap:6px;max-height:50vh;overflow:auto"></div><div class="row"><input id="nn" maxlength="16" placeholder="New city name"><button class="pri" id="nc">New city</button></div><button id="sx">Close</button></div></div>
 <div id="toasts"></div>
@@ -93,17 +93,17 @@ const $=s=>document.querySelector(s),N=32,SP=N+5,CAP=16000,PFX='citylink-',f=n=>
 const T=[['Bulldoze','🧹',0],['Road','🛣️',10],['Residential','🏠',15],['Commercial','🏪',15],['Industrial','🏭',15],['Coal plant','⚡',400],['Town hall','🏛️',600],['Police','🚓',250],['School','🎓',250],['Park','🌳',60],['Landmark','🗼',1500],['Hospital','🏥',450],['University','🏫',900],['Fire station','🚒',300],['Wind turbine','🌬️',200],['Solar farm','☀️',600],['Nuclear plant','☢️',3000],['Library','📚',200],['Clinic','⚕️',150],['Stadium','🏟️',2500],['Museum','🖼️',800]];
 const K=['','rd','r','c','i','pw','th','pl','sc','pk','lm','ho','un','fd','wt','so','nu','li','cn','sd','mu'];
 let G=new Array(N*N).fill(0),cash=5000,gd=0,vis=0,name='',tool=1,hov=-1,down=0,S={},lastW=0,look=0,ms=0,ov='',auto=0,pol={tax:1},land=12,lp=[200,200];
-let fin={loans:[],units:0,px:100,bonds:[],vents:[],eff:[]},lastMiss=0;let peer,isHost=0,hc=null,conns={},others={},cards={},myId='',room='',tcd={};
+let fin={loans:[],units:0,px:100,bonds:[],vents:[],eff:[]},lastMiss=0,crimeH=0,sst={cs:0,cu:0,fs:0,fu:0},spd=1,rtab='bud';let peer,isHost=0,hc=null,conns={},others={},cards={},myId='',room='',tcd={};
 const enc=g=>g.map(v=>String.fromCharCode(48+v)).join(''),dec=s=>[...s].map(c=>c.charCodeAt(0)-48);
 
 /* ---------- local save ---------- */
 let store={cur:'',list:{}};
 const persist=()=>{try{localStorage.setItem('citylink2',JSON.stringify(store))}catch(e){}};
-const save=()=>{if(!store.cur)store.cur='c'+Date.now().toString(36);store.list[store.cur]={g:enc(G),c:cash,gd,v:vis,n:name,pol,ms,fin,l:land,p:S.pop||0,t:Date.now()};persist()};
+const save=()=>{if(!store.cur)store.cur='c'+Date.now().toString(36);store.list[store.cur]={g:enc(G),c:cash,gd,v:vis,n:name,pol,ms,fin,l:land,p:S.pop||0,cr:crimeH,st:sst,t:Date.now()};persist()};
 function loadState(o={}){
   let g=o.g?dec(o.g):[];
   if(g.length&&g.length!=N*N){const n=Math.round(Math.sqrt(g.length)),a=(N-n)>>1,A=new Array(N*N).fill(0);g.forEach((v,i)=>A[(a+(i/n|0))*N+a+i%n]=v);g=A}
-  G=g.length?g:new Array(N*N).fill(0);cash=o.c??5000;gd=o.gd||0;vis=o.v||0;name=o.n||'';pol=o.pol||{tax:1};ms=o.ms||0;fin=Object.assign({loans:[],units:0,px:100,bonds:[],vents:[],eff:[]},o.fin||{});land=o.l||(o.g?24:12)}
+  G=g.length?g:new Array(N*N).fill(0);cash=o.c??5000;gd=o.gd||0;vis=o.v||0;name=o.n||'';pol=o.pol||{tax:1};ms=o.ms||0;fin=Object.assign({loans:[],units:0,px:100,bonds:[],vents:[],eff:[]},o.fin||{});land=o.l||(o.g?24:12);crimeH=o.cr||0;sst=Object.assign({cs:0,cu:0,fs:0,fu:0},o.st||{})}
 try{store=JSON.parse(localStorage.getItem('citylink2'))||store}catch(e){}
 try{const d=JSON.parse(localStorage.getItem('citylink'));if(d&&!Object.keys(store.list).length){store.cur='c0';store.list.c0=d}}catch(e){}
 if(!store.list[store.cur])store.cur=Object.keys(store.list)[0]||'';
@@ -124,6 +124,20 @@ const ghost=new THREE.Mesh(new THREE.BoxGeometry(.98,.25,.98),new THREE.MeshBasi
 const PV=new THREE.InstancedMesh(BOX,new THREE.MeshBasicMaterial({transparent:true,opacity:.6,depthWrite:false}),N*N);
 PV.frustumCulled=false;PV.renderOrder=5;PV.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(N*N*3).fill(1),3);PV.instanceColor.setUsage(THREE.DynamicDrawUsage);PV.count=0;scene.add(PV);
 const cam={t:new THREE.Vector3(N/2,0,N/2),th:.6,ph:.95,r:34},cities={},av={};let focusId='me';
+/* service ranges drawn on the ground */
+const RNG={7:[7,'#3b82f6','stops crime'],13:[7,'#f97316','stops fires']};
+const rngOf=t=>RNG[t]?RNG[t][0]:(t>4&&SRC[t]?SRC[t][0]:0),rngCol=t=>RNG[t]?RNG[t][1]:(SRC[t]&&SRC[t][1]<0?'#ef4444':'#5eead4');
+const DISC=new THREE.CircleGeometry(1,64),RINGG=new THREE.RingGeometry(.965,1,96);DISC.rotateX(-Math.PI/2);RINGG.rotateX(-Math.PI/2);
+const RMAT={},rmat=(c,o)=>RMAT[c+o]||(RMAT[c+o]=new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:o,depthWrite:false,depthTest:false}));
+function mkRing(c,own){const g=new THREE.Group(),d=new THREE.Mesh(DISC,own?new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.14,depthWrite:false,depthTest:false}):rmat(c,.07)),l=new THREE.Mesh(RINGG,own?new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.9,depthWrite:false,depthTest:false}):rmat(c,.85));d.renderOrder=8;l.renderOrder=9;g.add(d,l);return g}
+const rangeG=new THREE.Group(),hoverR=mkRing('#ffffff',1),flashR=[];scene.add(rangeG,hoverR);hoverR.visible=false;
+function placeRing(g,i,r){g.position.set(i%N+.5,.14,(i/N|0)+.5);g.scale.set(r,1,r)}
+function drawRanges(){while(rangeG.children.length)rangeG.remove(rangeG.children[0]);$('#lgd').hidden=ov!='r';if(ov!='r')return;
+  G.forEach((v,i)=>{const t=v>>2,r=rngOf(t);if(!r||!own(i))return;const g=mkRing(rngCol(t));placeRing(g,i,r);rangeG.add(g)})}
+function hoverRing(i){let t=0,r=0;if(i>=0){const cur=G[i]>>2;if(rngOf(cur)&&(!drag||MODE[tool]))t=cur;else if(tool>4&&rngOf(tool))t=tool;r=rngOf(t)}
+  if(!r){hoverR.visible=false;return}hoverR.visible=true;placeRing(hoverR,i,r);hoverR.children.forEach(m=>m.material.color.set(rngCol(t)))}
+function flashRing(i,t){const g=mkRing(rngCol(t),1);placeRing(g,i,rngOf(t));scene.add(g);flashR.push({g,a:0})}
+function flashUpd(dt){for(let k=flashR.length-1;k>=0;k--){const q=flashR[k];q.a+=dt;const o=Math.max(0,1-q.a/2.8),[d,l]=q.g.children;d.material.opacity=.14*o;l.material.opacity=.9*o;q.g.scale.multiplyScalar(1+dt*.02);if(o<=0){scene.remove(q.g);d.material.dispose();l.material.dispose();flashR.splice(k,1)}}}
 const off=id=>{if(id==='me')return 0;const i=Object.keys(others).indexOf(id);return i<0?null:(i+1)*SP};
 
 const ZG={2:'#3ddc84',3:'#4da3ff',4:'#ffd23f'},SRC={4:[5,-4],5:[6,-14],6:[5,4],7:[6,8],8:[6,8],9:[5,14],10:[6,8],11:[7,10],12:[8,6],13:[6,5],16:[8,-6],17:[5,5],18:[5,6],19:[8,8],20:[6,5]};
@@ -288,7 +302,7 @@ function setCity(id,g,nm,gs,L){
   if(!o){const m=new THREE.InstancedMesh(BOX,MAT,CAP),gr=new THREE.Group();m.frustumCulled=false;m.castShadow=m.receiveShadow=true;
     o=cities[id]={g:gr,m,cm:mkI(240),pm:mkI(320),cars:[],ppl:[]};gr.add(m,o.cm,o.pm);scene.add(gr)}
   if(nm!==o.n){if(o.l)o.g.remove(o.l);o.n=nm;o.l=label(nm,9,'rgba(10,14,20,.75)');o.l.position.set(N/2,6,-1);o.g.add(o.l)}
-  if(gs&&gs===o.gs)return;o.gs=gs;o.grid=g;o.L=id=='me'?land:L||24;o.l.position.set(N/2,6,(N-o.L)/2-1);fill(o.m,boxes(g,o.L,id=='me'));sync(o,g)}
+  if(gs&&gs===o.gs)return;o.gs=gs;o.grid=g;o.L=id=='me'?land:L||24;o.l.position.set(N/2,6,(N-o.L)/2-1);fill(o.m,boxes(g,o.L,id=='me'));sync(o,g);if(id=='me')drawRanges()}
 
 /* ---------- feedback: particles, floating text, sound ---------- */
 const GOLD=['#ffd23f','#fff3b0'],CONF=['#f43f5e','#facc15','#22d3ee','#a3e635','#c084fc'],rnd=a=>a[Math.random()*a.length|0],mid=()=>[stage.clientWidth/2,stage.clientHeight/2];
@@ -333,7 +347,7 @@ let last=performance.now()/1000;
 function frame(){
   requestAnimationFrame(frame);const t=performance.now()/1000,dt=Math.min(t-last,.1),br=(Math.sin(t/25)+1)*.4+.2;last=t;
   sun.intensity=.2+.8*br;hemi.intensity=.3+.5*br;scene.background.lerpColors(SKY[0],SKY[1],br);scene.fog.color.copy(scene.background);sea.material.color.lerpColors(SEA[0],SEA[1],br);
-  for(const id in cities)move(cities[id],dt);fx(dt);
+  for(const id in cities)move(cities[id],dt);fx(dt);flashUpd(dt);
   ['me',...Object.keys(others)].forEach((id,k)=>{const o=cities[id];if(o)o.g.position.x=k*SP});
   if(off(focusId)==null)focusId='me';
   {const kx=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0),ky=(keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0),mv=cam.r*(keys.ShiftLeft?1.8:.8)*dt;
@@ -361,7 +375,8 @@ function aim(e){
   const sr=stage.getBoundingClientRect();lp=[e.clientX-sr.left,e.clientY-sr.top];const p=pick(e),h=p&&cityAt(p);hov=h&&h.id=='me'?h.r*N+h.c:-1;
   if(drag){ghost.visible=false;if(hov>=0&&hov!=drag.e){drag.e=hov;preview()}else pvPos()}
   else{ghost.visible=hov>=0;if(hov>=0){ghost.position.set(h.c+.5,.2,h.r+.5);ghost.material.color.set(ghostCol(hov))}}
-  $('#help').textContent=hov>=0&&S.hm?`Tile happiness ${Math.round(S.hm[hov])}% · ${G[hov]>>2?T[G[hov]>>2][0]:'Empty'}`:'Drag to preview, release to build · Esc or right-click cancels · Right-drag: look · WASD: move';
+  hoverRing(drag?drag.e:hov);
+  {const cur=hov>=0?G[hov]>>2:0,rr=rngOf(cur);$('#help').textContent=hov>=0&&S.hm?`Tile happiness ${Math.round(S.hm[hov])}% · ${cur?T[cur][0]:'Empty'}${rr?' · range '+rr+' tiles'+(RNG[cur]?' ('+RNG[cur][2]+')':''):''}`:'Drag to preview, release to build · Esc or right-click cancels · Right-drag: look · WASD: move'}
   pres(h)}
 const spin=(dx,dy)=>{cam.th-=dx*.008;cam.ph=cl(cam.ph-dy*.008,.2,1.45)};
 const ptrs=new Map();let pin=null,orb=0;
@@ -381,7 +396,7 @@ cv.onpointerup=cv.onpointercancel=e=>{ptrs.delete(e.pointerId);pin=null;
   if(drag){const r=cv.getBoundingClientRect(),out=e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom;
     if(out||e.type=='pointercancel')cancelDrag(true);else commitDrag()}
   down=0};
-cv.onpointerleave=()=>{hov=-1;ghost.visible=false;pres(null)};
+cv.onpointerleave=()=>{hov=-1;ghost.visible=false;hoverR.visible=false;pres(null)};
 cv.onwheel=e=>{e.preventDefault();cam.r=cl(cam.r*(1+Math.sign(e.deltaY)*.1),8,90)};
 cv.oncontextmenu=e=>{e.preventDefault();cancelDrag(true)};
 
@@ -409,27 +424,53 @@ function calc(){
   G.forEach(v=>{const t=v>>2;if(t)s[K[t]]+=t>1&&t<5?v&3:1});
   s.pop=s.r*8;s.jobs=s.c*6+s.i*8;const p=k=>s.th>0&&pol[k];s.sup=s.pw*40+(s.wt*12+s.so*25+s.nu*160)*(p('green')?1.25:1);s.dem=(s.r+s.c+s.i)*2;s.pow=s.sup>=s.dem;
   s.hm=hmap(G,p('rec')).map(v=>cl(v-(p('waste')?8:0),0,100));let w=0,u=0;G.forEach((v,i)=>{if(v>>2==2&&v&3){w+=v&3;u+=(v&3)*s.hm[i]}});
-  s.hap=Math.round(cl((w?u/w:60)+(s.th?[8,0,-10][pol.tax]+[-4,0,5][pol.svc??1]+(p('beaut')?5:0)+(p('health')?7:0)+(p('trans')?3:0)+RK(p,1):0)+fin.eff.reduce((a,e)=>a+(e.h||0),0)-(s.pow?0:15),0,100));
+  s.hap=Math.round(cl((w?u/w:60)+(s.th?[8,0,-10][pol.tax]+[-4,0,5][pol.svc??1]+(p('beaut')?5:0)+(p('health')?7:0)+(p('trans')?3:0)+RK(p,1):0)+fin.eff.reduce((a,e)=>a+(e.h||0),0)-crimeH-(s.pow?0:15),0,100));
   s.edu=Math.round(cl((s.sc*18+s.un*60+s.li*8)/Math.max(40,s.pop)*100+(p('edu')?15:0)+(s.th?[-8,0,8][pol.svc??1]+RK(p,2):0),0,100));
   s.att=Math.round((s.pk+s.lm*5+s.un*3+s.sd*8+s.mu*4+(s.hap>70?3:0))*(p('tour')?1.5:1)*(p('ads')?.9:1));return s}
 function fire(){
   if(Math.random()>(po('fire')?.015:.04)+(po('hours')?.02:0))return;const b=[];G.forEach((v,i)=>{const t=v>>2;t>1&&t<5&&v&3&&b.push(i)});if(!b.length)return;
   const i=b[Math.random()*b.length|0],x=i%N,y=i/N|0;
-  if(G.some((v,j)=>v>>2==13&&Math.hypot(j%N-x,(j/N|0)-y)<=7))(sfx('hi'),burst(x+.5,y+.5,['#60a5fa','#e0f2fe'],16),toast('🚒 Your fire station put out a fire'));
-  else{G[i]&=~3;sfx('fire');burst(x+.5,y+.5,['#ff7b00','#ffd23f','#ff3b00','#444'],24,4);toast('🔥 A fire destroyed a building. Build a fire station!')}}
+  if(G.some((v,j)=>v>>2==13&&Math.hypot(j%N-x,(j/N|0)-y)<=7))(sst.fs++,sfx('hi'),burst(x+.5,y+.5,['#60a5fa','#e0f2fe'],16),toast('🚒 Your fire station put out a fire'));
+  else{sst.fu++;G[i]&=~3;sfx('fire');burst(x+.5,y+.5,['#ff7b00','#ffd23f','#ff3b00','#444'],24,4);toast('🔥 A fire destroyed a building. Build a fire station!')}}
+/* crime: police stations within 7 tiles stop it, like fire stations stop fires */
+function crime(){
+  if((S.pop||0)<60)return;const ch=.045*(1.4-S.hap/100)*(po('fines')?.7:1)*(po('casino')?1.4:1)*(po('night')?1.15:1);if(Math.random()>ch)return;
+  const b=[];G.forEach((v,i)=>{const t=v>>2;(t==2||t==3)&&v&3&&b.push(i)});if(!b.length)return;
+  const i=b[Math.random()*b.length|0],x=i%N,y=i/N|0,kind=G[i]>>2==3?'shop robbery':'burglary';
+  if(G.some((v,j)=>v>>2==7&&Math.hypot(j%N-x,(j/N|0)-y)<=RNG[7][0])){sst.cs++;sfx('hi');burst(x+.5,y+.5,['#3b82f6','#ef4444','#e0f2fe'],16);toast('🚓 Your police stopped a '+kind)}
+  else{const l=Math.round(Math.min(cash,60+S.pop*.04+Math.random()*80));cash-=l;crimeH=Math.min(12,crimeH+3);sst.cu++;sfx('err');burst(x+.5,y+.5,['#111827','#6b7280','#a855f7'],18,3);toast('🦹 A '+kind+' cost $'+f(l)+' and scared residents. Build a police station nearby!')}}
+/* every revenue and cost line of one tick (same maths the city runs on) */
+function budget(s){const p=po,sv=s.th?[.7,1,1.4][pol.svc??1]:1,tx=[.8,1,1.3][s.th?pol.tax:1];
+  const rk=Object.keys(RISK).reduce((a,k)=>a+(p(k)?RISK[k][0](s):0),0),dl=fin.eff.reduce((a,e)=>a+(e.r||0),0);
+  const rev=[['🏠','Residential taxes',s.pop*.2*tx*(1+s.th*.25)*(1+s.edu/200)*s.hap/70],['🏪','Shops',s.c*2.2*(gd>0?1:.5)*(p('night')?1.3:1)],['🏭','Industry',s.i*2*(p('ind')?1.4:1)],['⚠️','Risky policies',rk],['🤝','Deals & sponsors',dl]];
+  const cost=[['🛣️','Road upkeep',s.rd*(p('trans')?0:.2)],['⚡','Power plants',s.pw*6+s.wt*1.5+s.so*3+s.nu*30],['🏛️','Town halls',s.th*5],['🚓','Police & fire',(s.pl*3+s.fd*4)*sv],['🎓','Education',(s.sc*3+s.li*4)*sv+s.un*14],['🏥','Health care',(s.ho*8+s.cn*3)*sv],['🌳','Parks & attractions',s.pk+s.lm*8+s.sd*20+s.mu*8*sv],['📜','Policy upkeep',POL.reduce((a,q)=>a+(p(q[0])?q[2]:0),0)]];
+  const Rv=rev.reduce((a,x)=>a+x[2],0),C=cost.reduce((a,x)=>a+x[2],0);return{rev,cost,R:Rv,C,inc:Rv-C}}
+const fm=n=>Math.abs(n)<10?(Math.round(n*10)/10).toFixed(1):f(n);
+function budUI(){const el=$('#bud');if(!el||el.hidden||!S.hm)return;const B=budget(S),ln=fin.loans.reduce((a,l)=>a+Math.min(l.pay,l.left),0),mx=Math.max(B.R,B.C,1),pm=30*spd;
+  const row=(x,c)=>x[2]>=.05?`<div class="br ${c}"><i style="width:${Math.round(x[2]/mx*100)}%"></i><span>${x[0]} ${x[1]}</span><b>${c=='rv'?'+':'−'}$${fm(x[2])}</b></div>`:'';
+  const rv=B.rev.map(x=>row(x,'rv')).join(''),co=B.cost.map(x=>row(x,'co')).join(''),net=B.inc-ln,sg=v=>(v>=0?'+':'−')+'$'+fm(Math.abs(v)),cls=v=>v>=0?'pos':'neg';
+  const big=[...B.cost].sort((a,b)=>b[2]-a[2])[0];
+  el.innerHTML=`<h3>📊 Budget</h3><div class="mu">Money in and out every tick (one tick every ${2/spd} s${spd>1?' at ×'+spd:''}).</div>`
+   +`<div class="bh"><b>Revenue</b><span class="mu">+$${fm(B.R)}/tick</span></div><div class="bl">${rv||'<div class="mu">No income yet. Build roads and zones to start collecting taxes.</div>'}</div>`
+   +`<div class="bh"><b>Costs</b><span class="mu">−$${fm(B.C)}/tick</span></div><div class="bl">${co||'<div class="mu">No running costs yet.</div>'}</div>`
+   +`<div class="bt"><span>Operating balance</span><span class="${cls(B.inc)}">${sg(B.inc)}/tick</span></div>`
+   +(ln?`<div class="bt"><span>🏦 Loan repayments</span><span class="neg">−$${fm(ln)}/tick</span></div>`:'')
+   +`<div class="bt big"><span>Net</span><span class="${cls(net)}">${sg(net)}/tick · ${sg(net*pm)}/min</span></div>`
+   +(net<0?`<div class="tip warn">You spend more than you earn${big&&big[2]>0?'. Your biggest cost is '+big[1].toLowerCase()+' ($'+fm(big[2])+'/tick)':''}. Raise taxes, lower the services budget or grow more zones.</div>`:'')
+   +`<div class="bh"><b>Safety</b><span class="mu">since this city started</span></div><div class="sg"><div>🚓 Crimes stopped<b>${f(sst.cs)}</b></div><div>🦹 Crimes<b>${f(sst.cu)}</b></div><div>🚒 Fires stopped<b>${f(sst.fs)}</b></div><div>🔥 Fires<b>${f(sst.fu)}</b></div></div>`
+   +(crimeH>0?`<div class="tip warn">Recent crime is lowering happiness by ${Math.round(crimeH)}%. Police stations stop crime within ${RNG[7][0]} tiles.</div>`:'')}
 function tick(){
   S=calc();
   G.forEach((v,i)=>{const t=v>>2,l=v&3;if(t<2||t>4)return;
     if(t==2&&l&&S.hm[i]<30&&Math.random()<.12){G[i]--;return}
     if(l<3&&S.pow&&near(i)&&(t!=2||S.hm[i]>=45)&&Math.random()<(t==2&&po('boom')?.32:.2)){
       const d=t==2?S.jobs-S.pop+24:t==3?S.pop*.5-S.c*6+6:S.pop*.4-S.i*8+10;if(d>0)G[i]++}});
-  fire();
+  fire();crime();crimeH=Math.max(0,crimeH-.25);
   gd=cl(gd+S.i*1.5*(po('ind')?1.5:1)-S.c,0,300);
-  const tx=[.8,1,1.3][S.th?pol.tax:1],inc=S.pop*.2*tx*(1+S.th*.25)*(1+S.edu/200)*S.hap/70+S.c*2.2*(gd>0?1:.5)*(po('night')?1.3:1)+S.i*2*(po('ind')?1.4:1)
-    +RV()-(S.rd*(po('trans')?0:.2)+S.pw*6+S.th*5+S.pk+S.lm*8+S.un*14+S.wt*1.5+S.so*3+S.nu*30+S.sd*20+(S.pl*3+S.sc*3+S.ho*8+S.fd*4+S.li*4+S.cn*3+S.mu*8)*(S.th?[.7,1,1.4][pol.svc??1]:1)+POL.reduce((a,p)=>a+(po(p[0])?p[2]:0),0));
+  const inc=budget(S).inc;
   cash=Math.max(0,cash+inc);finTick();S=calc();S.inc=inc;
   while(ms<MS.length&&S.pop>=MS[ms][0]){cash+=MS[ms][2];toast(`🎯 ${MS[ms][1]} reached! Bonus $${f(MS[ms][2])}`);sfx('win');burst(N/2,N/2,CONF,50,5);ms++}
-  setCity('me',G,name);hud();finUI();save();
+  setCity('me',G,name);hud();finUI();budUI();save();
   Object.keys(cards).forEach(id=>cards[id].querySelector('.hr').textContent=who(id));
   if(room)send(snap())}
 function hud(){afford();polUI();$('#hud').innerHTML=`<span>💰 <b>$${f(cash)}</b> ${S.inc>=0?'+':''}${f(S.inc)}</span><span>👥 <b>${f(S.pop)}</b></span><span>💼 ${f(S.jobs)}</span><span>⚡ ${S.dem}/${S.sup}${S.pow?'':' ⚠️'}</span><span>😊 ${S.hap}%</span><span>🎓 ${S.edu}%</span><span>📦 ${f(gd)}</span><span>🌍 ${land}×${land}</span><span>✈ ${S.att} · ${vis} visits</span><span>🚶 ${cities.me?cities.me.ppl.length:0} 🚗 ${cities.me?cities.me.cars.length:0}</span>${fin.loans.length?`<span>🏦 −$${f(debt())}</span>`:''}<span>${ms<MS.length?`🎯 ${MS[ms][1]} at ${f(MS[ms][0])} pop`:'🏆 Metropolis!'}</span><span>${who('me')}</span>`}
@@ -467,7 +508,7 @@ function commitDrag(){
   const res=evalTiles(dragTiles()),ok=res.filter(r=>r.st=='ok'||r.st=='demo'),bad=res.filter(r=>r.st=='bad').length;
   cancelDrag();
   if(!ok.length)return deny(tool==0?'Nothing to demolish there':bad?'Nothing built: tiles are occupied, outside your land or too expensive. Demolish first.':'That is already built');
-  const cost=ok.length*T[tool][2];cash-=cost;ok.forEach(r=>G[r.i]=tool<<2);
+  const cost=ok.length*T[tool][2];cash-=cost;ok.forEach(r=>G[r.i]=tool<<2);if(tool>4&&rngOf(tool))ok.slice(0,4).forEach(r=>flashRing(r.i,tool));
   hud();setCity('me',G,name);
   sfx(tool==0?'del':tool==1?'road':tool<5?'zone':'place');
   ok.slice(0,40).forEach(r=>burst(r.i%N+.5,(r.i/N|0)+.5,tool?['#e7dcc3','#bfae8a','#fff']:['#8a8f98','#5b4a38'],ok.length>12?3:8));
@@ -475,11 +516,11 @@ function commitDrag(){
   if(bad)toast(bad+' tile'+(bad==1?' was':'s were')+' skipped (occupied, outside your land or too expensive)');
   save()}
 const CATS=[['🛠️','Basics','Roads and clearing',[0,1]],['🏘️','Zones','Where people live and work',[2,3,4]],['⚡','Power','Keep the lights on',[5,14,15,16]],['🏛️','Government','Safety and city services',[6,7,13]],['🎓','Education & health','Learning and care',[8,17,12,11,18]],['🌳','Leisure & tourism','Attract visitors',[9,19,20,10]]];
-const TIP={0:'Drag to select an area and remove buildings (free)',1:'Drag a straight line. Zones grow beside powered roads',2:'Drag an area of homes (occupied tiles are skipped)',3:'Drag an area of shops (occupied tiles are skipped)',4:'Drag an area of factories (occupied tiles are skipped)',5:'+40 power. Pollutes nearby homes',14:'+12 power. Clean and cheap',15:'+25 power. Clean',16:'+160 power. Neighbours feel uneasy',6:'Unlocks policies, boosts tax',7:'Raises happiness nearby',13:'Stops fires within 7 tiles',8:'Education + happiness nearby',17:'Small education boost',12:'Big education boost, draws tourists',11:'Big happiness boost nearby',18:'Cheap local health care',9:'Happiness + tourism',19:'Huge tourist draw',20:'Tourists + happiness',10:'Tourist magnet'};
+const TIP={0:'Drag to select an area and remove buildings (free)',1:'Drag a straight line. Zones grow beside powered roads',2:'Drag an area of homes (occupied tiles are skipped)',3:'Drag an area of shops (occupied tiles are skipped)',4:'Drag an area of factories (occupied tiles are skipped)',5:'+40 power. Pollutes nearby homes',14:'+12 power. Clean and cheap',15:'+25 power. Clean',16:'+160 power. Neighbours feel uneasy',6:'Unlocks policies, boosts tax',7:'Stops crime within 7 tiles, raises happiness nearby',13:'Stops fires within 7 tiles',8:'Education + happiness nearby',17:'Small education boost',12:'Big education boost, draws tourists',11:'Big happiness boost nearby',18:'Cheap local health care',9:'Happiness + tourism',19:'Huge tourist draw',20:'Tourists + happiness',10:'Tourist magnet'};
 const CH=[];
 const openCat=(c,v)=>CH.forEach(o=>{const s=o===c&&v;o.bx.hidden=!s;o.h.classList.toggle('open',s);o.h.setAttribute('aria-expanded',s)});
 function selTool(){cancelDrag();const t=T[tool];
-  $('#sel').innerHTML=`<div class="sh"><span class="si">${t[1]}</span><div><b>${t[0]}</b><div class="mu">${t[2]?'Cost $'+f(t[2]):'Free'}</div></div></div><div class="mu">${TIP[tool]||''}</div>`;
+  $('#sel').innerHTML=`<div class="sh"><span class="si">${t[1]}</span><div><b>${t[0]}</b><div class="mu">${t[2]?'Cost $'+f(t[2]):'Free'}</div></div></div><div class="mu">${TIP[tool]||''}</div>${rngOf(tool)?`<div class="mu">📍 Range ${rngOf(tool)} tiles: shown on the ground while you aim. Switch the view to <b>Service ranges</b> to see all of them.</div>`:''}`;
   document.querySelectorAll('#tools .tb').forEach(x=>x.classList.toggle('on',+x.dataset.i==tool));
   CH.forEach(o=>o.h.classList.toggle('has',o.ids.includes(tool)))}
 function afford(){document.querySelectorAll('#tools .tb').forEach(b=>b.classList.toggle('cant',cash<T[+b.dataset.i][2]))}
@@ -494,7 +535,7 @@ CATS.forEach(([ic,n,ds,ids])=>{
   $('#tools').append(h,bx)});
 openCat(CH[0],1);selTool();
 $('#tools').insertAdjacentHTML('beforeend','<p class="mu" style="margin:4px 2px 0">Zones grow beside powered roads. Services lift happiness nearby; industry and coal plants drag it down.</p>');
-function setOv(v,a){ov=v;auto=a;$('#vw').value=v;Object.values(cities).forEach(o=>o.grid&&fill(o.m,boxes(o.grid,o.L,o===cities.me)))}
+function setOv(v,a){ov=v;auto=a;$('#vw').value=v;Object.values(cities).forEach(o=>o.grid&&fill(o.m,boxes(o.grid,o.L,o===cities.me)));drawRanges()}
 $('#vw').onchange=e=>setOv(e.target.value,0);
 function syncUI(){for(const k in pcs)pcs[k].checked=!!pol[k];$('#tx').value=pol.tax;$('#sv2').value=pol.svc??1}
 /* expanding land */
@@ -527,6 +568,9 @@ function renderSaves(){
 $('#sm').onclick=$('#so').onclick=()=>{renderSaves();$('#sv').hidden=false};
 $('#sx').onclick=()=>{$('#sv').hidden=true};
 $('#nc').onclick=()=>{newCity($('#nn').value.trim());$('#nn').value='';renderSaves()};
+function setTab(k){rtab=k;document.querySelectorAll('#rtabs button').forEach(b=>{const on=b.dataset.tab==k;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});['bud','fin','pol','ply'].forEach(id=>$('#'+id).hidden=id!=k);$('#rbody').scrollTop=0;if(k=='bud')budUI();if(k=='fin')finUI();try{localStorage.setItem('citylink-tab',k)}catch(e){}}
+$('#rtabs').onclick=e=>{const b=e.target.closest('button');if(b){setTab(b.dataset.tab);sfx('zone')}};
+const pcnt=()=>{const n=Object.keys(cards).length;$('#pcnt').textContent=n;$('#pcnt').style.background=n?'#f59e0b':''};
 const pcs={};[...new Set(POL.map(p=>p[4]))].forEach(gn=>{const hd=document.createElement('div');hd.className='pg'+(gn.startsWith('⚠')?' risk':'');hd.textContent=gn;$('#pol').append(hd);
   POL.filter(p=>p[4]==gn).forEach(([k,l,c,d])=>{const b=document.createElement('label');b.title=d;b.innerHTML=`<input type="checkbox"><span>${l} <small class="mu">${RISK[k]?'':'$'+c+'/tick · '}${d}</small></span>`;
     const x=b.firstChild;x.checked=!!pol[k];pcs[k]=x;x.onchange=()=>{if(!S.th){x.checked=false;return toast('Build a Town hall to enact policies')}pol[k]=+x.checked;sfx('zone');save();hud()};$('#pol').append(b)})});
@@ -612,7 +656,7 @@ function rm(id){
   delete others[id];if(cards[id]){cards[id].remove();delete cards[id]}
   const o=cities[id];if(o){scene.remove(o.g);delete cities[id]}
   const a=av[id];if(a){scene.remove(a.g);delete av[id]}
-  if(!Object.keys(cards).length)$('#emp').style.display=''}
+  if(!Object.keys(cards).length)$('#emp').style.display='';pcnt()}
 
 function card(id){
   const m=others[id];let c=cards[id];
@@ -626,7 +670,7 @@ function card(id){
       send({t:'offer',to:id,g,p,d,n:name});toast('Offer sent to '+others[id].n)};
     tb.onclick=()=>{if(Date.now()<(tcd[id]||0))return toast('Tourists are still on their way');
       if(cash<25)return toast('Not enough cash');cash-=25;tcd[id]=Date.now()+15000;hud();send({t:'tour',to:id,n:name})};
-    $('#others').append(c);$('#emp').style.display='none'}
+    $('#ply').append(c);$('#emp').style.display='none';pcnt();toast('👥 '+m.n+' joined. See the Players tab')}
   c.querySelector('h3').textContent=m.n;
   c.querySelector('.st').textContent=`👥 ${f(m.p)}  😊 ${m.h}%  ✈ ${m.a}  📦 ${m.gd}  💰 $${f(m.c)}`;
   c.querySelector('.hr').textContent=who(id);
@@ -656,6 +700,7 @@ function start(){
   $('#lobby').style.display='none';$('#game').style.display='grid';
   $('#rm').textContent=room?'Room '+room:'Solo';$('#cp').style.display=room?'':'none';
   S=calc();S.inc=0;setCity('me',G,name);hud();finUI();rs();exLabel();syncUI();cam.r=cl(10+land*1.1,18,50);if(room)send(snap());
+  $('#spd').hidden=!!room;$('#plyt').hidden=!room;{let t='bud';try{t=localStorage.getItem('citylink-tab')||t}catch(e){}if(!room&&t=='ply')t='bud';setTab(t)}
   if(!window.tm){window.tm=setInterval(tick,2000);frame()}
   toast('Lay roads, zone beside them, then add a ⚡ power plant.')}
 const go=fn=>{name=($('#nm').value.trim()||'City '+(100+Math.random()*900|0)).slice(0,16);save();fn()};
@@ -664,7 +709,8 @@ const q=new URLSearchParams(location.search).get('room');if(q)$('#cd').value=q.t
 $('#mk').onclick=()=>go(mkHost);
 $('#jn').onclick=()=>{const c=$('#cd').value.trim().toUpperCase();if(c.length<5)return toast('Enter the 5-letter room code');go(()=>mkJoin(c))};
 $('#solo').onclick=()=>go(start);
-$('#hm').onclick=()=>{focusId='me';pan.set(0,0,0)};$('#mt').onclick=e=>{mute^=1;e.target.textContent=mute?'🔇':'🔊'};
+$('#hm').onclick=()=>{focusId='me';pan.set(0,0,0)};
+$('#spd').onclick=e=>{if(room)return;spd=spd==1?2:spd==2?4:1;clearInterval(window.tm);window.tm=setInterval(tick,2000/spd);const b=e.currentTarget;b.textContent=(spd>1?'⏩':'▶')+' ×'+spd;b.classList.toggle('fast',spd>1);sfx('zone');toast(spd>1?'Time runs ×'+spd+' faster':'Normal speed');budUI()};$('#mt').onclick=e=>{mute^=1;e.target.textContent=mute?'🔇':'🔊'};
 $('#md').onclick=e=>{look^=1;e.target.textContent=look?'🖐 Look mode':'✏️ Build mode'};
 $('#cp').onclick=()=>{navigator.clipboard.writeText(location.origin+location.pathname+'?room='+room).then(()=>toast('Invite link copied'),()=>toast('Room code: '+room))};
 $('#lv').onclick=()=>{save();location.reload()};
