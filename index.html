@@ -28,6 +28,8 @@ h1{margin:0;font:800 34px/1 Georgia,serif;letter-spacing:-1px}h1 i{color:var(--a
 #tools .on .mu{color:var(--ink)}
 #stage{position:relative;height:min(76vh,760px);min-height:380px;border-radius:12px;overflow:hidden;border:1px solid var(--ln)}
 #cv{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
+#cx{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:7;background:#7f1d1d;border-color:#ef4444;font-weight:700}
+.pv{position:absolute;pointer-events:none;z-index:6;white-space:nowrap;background:#000c;border:1px solid var(--ac);border-radius:8px;padding:3px 8px;font-size:12px;font-weight:700;transform:translate(14px,-36px)}
 #help{position:absolute;left:10px;bottom:8px;pointer-events:none;text-shadow:0 1px 3px #000}
 #others{display:grid;gap:10px}
 .oc{background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:10px;display:grid;gap:6px}
@@ -79,7 +81,7 @@ button:active{transform:scale(.96)}
 <div id="game">
   <div id="top"><div id="hud"></div><span id="rm"></span><select id="vw" title="Map overlay"><option value="">View: Normal</option><option value="z">View: Zones</option><option value="h">View: Happiness</option></select><button id="hm">🏠 My city</button><button id="md">✏️ Build mode</button><button id="cp">Copy invite link</button><button id="sm">📂 Saves</button><button id="mt" title="Sound">🔊</button><button id="lv">Leave</button></div>
   <div id="tools"><div id="sel"></div><button id="ex" class="pri"></button></div>
-  <div id="stage"><canvas id="cv"></canvas><div id="help" class="mu">Drag: build, WASD: move · Right-drag or two fingers: look · Wheel: zoom</div></div>
+  <div id="stage"><canvas id="cv"></canvas><div id="pv" class="pv" hidden></div><button id="cx" hidden>✖ Cancel build (Esc)</button><div id="help" class="mu">Drag to preview, release to build · Esc or right-click cancels · Right-drag: look · WASD: move</div></div>
   <div id="others"><div class="oc" id="pol"><h3>🏛️ Policies</h3><div class="mu" id="pinfo"></div><label class="sel">Tax rate <select id="tx"><option value="0">Low (happier, less income)</option><option value="1">Normal</option><option value="2">High (more income, unhappy)</option></select></label><label class="sel">Services budget <select id="sv2"><option value="0">Low (-30% upkeep)</option><option value="1">Normal</option><option value="2">High (+40% upkeep)</option></select></label></div><details class="oc" id="fin" open><summary>💼 Finance</summary><div id="fb"></div></details><p class="mu" id="emp">Nobody else is here yet. Copy the invite link and send it to a friend.</p></div>
 </div>
 <div id="sv" class="modal" hidden><div class="box" style="width:min(480px,100%)"><h2 style="margin:0">📂 Saved cities</h2><div id="sl" style="display:grid;gap:6px;max-height:50vh;overflow:auto"></div><div class="row"><input id="nn" maxlength="16" placeholder="New city name"><button class="pri" id="nc">New city</button></div><button id="sx">Close</button></div></div>
@@ -119,6 +121,8 @@ sea.rotation.x=-Math.PI/2;sea.position.y=-.6;scene.add(sea);
 const SKY=[new THREE.Color('#0a1424'),new THREE.Color('#8fc3f0')],SEA=[new THREE.Color('#0a2a3a'),new THREE.Color('#2f86ad')];
 const BOX=new THREE.BoxGeometry(1,1,1),MAT=new THREE.MeshLambertMaterial(),dummy=new THREE.Object3D(),col=new THREE.Color();
 const ghost=new THREE.Mesh(new THREE.BoxGeometry(.98,.25,.98),new THREE.MeshBasicMaterial({color:'#fff',transparent:true,opacity:.5}));ghost.visible=false;scene.add(ghost);
+const PV=new THREE.InstancedMesh(BOX,new THREE.MeshBasicMaterial({transparent:true,opacity:.6,depthWrite:false}),N*N);
+PV.frustumCulled=false;PV.renderOrder=5;PV.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(N*N*3).fill(1),3);PV.instanceColor.setUsage(THREE.DynamicDrawUsage);PV.count=0;scene.add(PV);
 const cam={t:new THREE.Vector3(N/2,0,N/2),th:.6,ph:.95,r:34},cities={},av={};let focusId='me';
 const off=id=>{if(id==='me')return 0;const i=Object.keys(others).indexOf(id);return i<0?null:(i+1)*SP};
 
@@ -309,7 +313,7 @@ const sfx=n=>{try{SFX[n]()}catch(e){}};
 /* WASD / arrows move the camera, Q/E turn it */
 const pan=new THREE.Vector3(),tv=new THREE.Vector3(),keys={};
 addEventListener('keydown',e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;keys[e.code]=1;if(e.code.startsWith('Arrow'))e.preventDefault()});
-addEventListener('keyup',e=>keys[e.code]=0);addEventListener('blur',()=>{for(const k in keys)keys[k]=0});
+addEventListener('keyup',e=>keys[e.code]=0);addEventListener('keydown',e=>{if(e.code=='Escape')cancelDrag(true)});$('#cx').onclick=()=>cancelDrag(true);addEventListener('blur',()=>{for(const k in keys)keys[k]=0});
 
 /* ---------- player avatars (presence) ---------- */
 const hue=k=>{let h=0;for(const c of k)h=(h*31+c.charCodeAt(0))%360;return h};
@@ -355,23 +359,31 @@ function pres(h){
   send({t:'p',city:k=='me'?myId:k,x:h?+h.x.toFixed(2):0,z:h?+h.z.toFixed(2):0})}
 function aim(e){
   const sr=stage.getBoundingClientRect();lp=[e.clientX-sr.left,e.clientY-sr.top];const p=pick(e),h=p&&cityAt(p);hov=h&&h.id=='me'?h.r*N+h.c:-1;
-  ghost.visible=hov>=0;if(hov>=0){ghost.position.set(h.c+.5,.2,h.r+.5);ghost.material.color.set(own(hov)&&cash>=T[tool][2]?'#ffffff':'#ff5555')}
-  $('#help').textContent=hov>=0&&S.hm?`Tile happiness ${Math.round(S.hm[hov])}% · ${G[hov]>>2?T[G[hov]>>2][0]:'Empty'}`:'Drag: build, WASD: move · Right-drag or two fingers: look · Wheel: zoom';
-  if(down)place(hov);pres(h)}
+  if(drag){ghost.visible=false;if(hov>=0&&hov!=drag.e){drag.e=hov;preview()}else pvPos()}
+  else{ghost.visible=hov>=0;if(hov>=0){ghost.position.set(h.c+.5,.2,h.r+.5);ghost.material.color.set(ghostCol(hov))}}
+  $('#help').textContent=hov>=0&&S.hm?`Tile happiness ${Math.round(S.hm[hov])}% · ${G[hov]>>2?T[G[hov]>>2][0]:'Empty'}`:'Drag to preview, release to build · Esc or right-click cancels · Right-drag: look · WASD: move';
+  pres(h)}
 const spin=(dx,dy)=>{cam.th-=dx*.008;cam.ph=cl(cam.ph-dy*.008,.2,1.45)};
 const ptrs=new Map();let pin=null,orb=0;
+let drag=null;
 cv.onpointerdown=e=>{cv.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
-  orb=e.button==2||e.shiftKey||look;down=ptrs.size==1&&!orb;if(ptrs.size==2){down=0;pin=null}else if(down)aim(e)};
+  orb=e.button==2||e.shiftKey||look;down=ptrs.size==1&&!orb;
+  if(ptrs.size==2){down=0;pin=null;cancelDrag(true)}
+  else if(down){aim(e);if(hov>=0){drag={s:hov,e:hov};preview()}else down=0}};
 cv.onpointermove=e=>{
+  if(drag&&(e.buttons&2))return cancelDrag(true);
   const p=ptrs.get(e.pointerId),dx=p?e.clientX-p.x:0,dy=p?e.clientY-p.y:0;if(p){p.x=e.clientX;p.y=e.clientY}
   if(ptrs.size==2){const[a,b]=[...ptrs.values()],d=Math.hypot(a.x-b.x,a.y-b.y),mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
     if(pin){cam.r=cl(cam.r*pin.d/d,8,90);spin(mx-pin.x,my-pin.y)}pin={d,x:mx,y:my};return}
   if(orb&&p){spin(dx,dy);return}
   aim(e)};
-cv.onpointerup=cv.onpointercancel=e=>{ptrs.delete(e.pointerId);pin=null;if(down)save();down=0};
+cv.onpointerup=cv.onpointercancel=e=>{ptrs.delete(e.pointerId);pin=null;
+  if(drag){const r=cv.getBoundingClientRect(),out=e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom;
+    if(out||e.type=='pointercancel')cancelDrag(true);else commitDrag()}
+  down=0};
 cv.onpointerleave=()=>{hov=-1;ghost.visible=false;pres(null)};
 cv.onwheel=e=>{e.preventDefault();cam.r=cl(cam.r*(1+Math.sign(e.deltaY)*.1),8,90)};
-cv.oncontextmenu=e=>e.preventDefault();
+cv.oncontextmenu=e=>{e.preventDefault();cancelDrag(true)};
 
 /* ---------- simulation ---------- */
 const near=i=>{const c=i%N;return(c>0&&G[i-1]>>2==1)||(c<N-1&&G[i+1]>>2==1)||(i>=N&&G[i-N]>>2==1)||(i<N*N-N&&G[i+N]>>2==1)};
@@ -423,20 +435,50 @@ function tick(){
 function hud(){afford();polUI();$('#hud').innerHTML=`<span>💰 <b>$${f(cash)}</b> ${S.inc>=0?'+':''}${f(S.inc)}</span><span>👥 <b>${f(S.pop)}</b></span><span>💼 ${f(S.jobs)}</span><span>⚡ ${S.dem}/${S.sup}${S.pow?'':' ⚠️'}</span><span>😊 ${S.hap}%</span><span>🎓 ${S.edu}%</span><span>📦 ${f(gd)}</span><span>🌍 ${land}×${land}</span><span>✈ ${S.att} · ${vis} visits</span><span>🚶 ${cities.me?cities.me.ppl.length:0} 🚗 ${cities.me?cities.me.cars.length:0}</span>${fin.loans.length?`<span>🏦 −$${f(debt())}</span>`:''}<span>${ms<MS.length?`🎯 ${MS[ms][1]} at ${f(MS[ms][0])} pop`:'🏆 Metropolis!'}</span><span>${who('me')}</span>`}
 
 /* ---------- building ---------- */
-let lastS=0;
-function place(i){
-  if(i<0||G[i]>>2==tool)return;
-  if(!own(i))return deny('Expand your land to build here');
-  const cost=T[tool][2];if(cash<cost)return deny('Not enough cash');
-  cash-=cost;G[i]=tool<<2;hud();setCity('me',G,name);
-  if(Date.now()-lastS>60){lastS=Date.now();sfx(tool?tool==1?'road':tool<5?'zone':'place':'del')}
-  burst(i%N+.5,(i/N|0)+.5,tool?['#e7dcc3','#bfae8a','#fff']:['#8a8f98','#5b4a38'],tool==1?5:12);
-  if(cost>=100)ftxt('-$'+f(cost),'#ffb4a2')}
+const MODE={0:'rect',1:'line',2:'rect',3:'rect',4:'rect',9:'rect',15:'rect'};
+const PCOL={ok:'#34d399',demo:'#f59e0b',same:'#94a3b8',bad:'#ef4444',none:'#64748b'};
+const ghostCol=i=>{const cur=G[i]>>2;if(tool==0)return cur?'#f59e0b':'#9ca3af';if(!own(i)||(cur&&cur!=tool)||cash<T[tool][2])return'#ff5555';return cur==tool?'#9ca3af':'#ffffff'};
+/* the tiles covered by the current drag: a straight line for roads, a rectangle for zones and demolish, one tile for the rest */
+function dragTiles(){
+  const a=drag.s,b=drag.e,ac=a%N,ar=a/N|0,bc=b%N,br=b/N|0,m=MODE[tool]||'one',o=[];
+  if(m=='one')return[b];
+  if(m=='line'){const h=Math.abs(bc-ac)>=Math.abs(br-ar),n=h?Math.abs(bc-ac):Math.abs(br-ar),d=(h?Math.sign(bc-ac):Math.sign(br-ar))||1;
+    for(let k=0;k<=n;k++)o.push(h?ar*N+ac+k*d:(ar+k*d)*N+ac);return o}
+  for(let r=Math.min(ar,br);r<=Math.max(ar,br);r++)for(let c=Math.min(ac,bc);c<=Math.max(ac,bc);c++)o.push(r*N+c);return o}
+/* ok = will be built, same = already there, bad = occupied / outside land / too expensive */
+function evalTiles(tl){let rem=cash;const c=T[tool][2];
+  return tl.map(i=>{const cur=G[i]>>2;let st;
+    if(tool==0)st=cur?'demo':'none';
+    else if(!own(i))st='bad';else if(cur==tool)st='same';else if(cur)st='bad';else if(rem<c)st='bad';else{st='ok';rem-=c}
+    return{i,st}})}
+function pvPos(){const el=$('#pv');el.style.left=lp[0]+'px';el.style.top=lp[1]+'px'}
+function preview(){
+  const res=evalTiles(dragTiles());let n=0,ok=0,bad=0;dummy.rotation.set(0,0,0);
+  res.forEach(r=>{dummy.position.set(r.i%N+.5,.17,(r.i/N|0)+.5);dummy.scale.set(.94,.1,.94);dummy.updateMatrix();
+    PV.setMatrixAt(n,dummy.matrix);PV.setColorAt(n++,col.set(PCOL[r.st]));
+    if(r.st=='ok'||r.st=='demo')ok++;else if(r.st=='bad')bad++});
+  PV.count=n;PV.instanceMatrix.needsUpdate=PV.instanceColor.needsUpdate=true;
+  const el=$('#pv');el.textContent=tool==0?`Demolish ${ok} tile${ok==1?'':'s'}`:`${T[tool][0]} · ${ok} tile${ok==1?'':'s'} · $${f(ok*T[tool][2])}`+(bad?` · ${bad} blocked`:'');
+  el.style.borderColor=ok?'':'#ef4444';el.hidden=false;$('#cx').hidden=false;pvPos()}
+function cancelDrag(show){
+  if(!drag)return;const multi=dragTiles().length>1;drag=null;down=0;PV.count=0;$('#pv').hidden=true;$('#cx').hidden=true;
+  if(show&&multi)ftxt('✖ Cancelled','#cbd5e1')}
+function commitDrag(){
+  const res=evalTiles(dragTiles()),ok=res.filter(r=>r.st=='ok'||r.st=='demo'),bad=res.filter(r=>r.st=='bad').length;
+  cancelDrag();
+  if(!ok.length)return deny(tool==0?'Nothing to demolish there':bad?'Nothing built: tiles are occupied, outside your land or too expensive. Demolish first.':'That is already built');
+  const cost=ok.length*T[tool][2];cash-=cost;ok.forEach(r=>G[r.i]=tool<<2);
+  hud();setCity('me',G,name);
+  sfx(tool==0?'del':tool==1?'road':tool<5?'zone':'place');
+  ok.slice(0,40).forEach(r=>burst(r.i%N+.5,(r.i/N|0)+.5,tool?['#e7dcc3','#bfae8a','#fff']:['#8a8f98','#5b4a38'],ok.length>12?3:8));
+  if(tool==0)ftxt('🧹 '+ok.length,'#fbbf24');else if(cost>0)ftxt('-$'+f(cost),'#ffb4a2');
+  if(bad)toast(bad+' tile'+(bad==1?' was':'s were')+' skipped (occupied, outside your land or too expensive)');
+  save()}
 const CATS=[['🛠️','Basics','Roads and clearing',[0,1]],['🏘️','Zones','Where people live and work',[2,3,4]],['⚡','Power','Keep the lights on',[5,14,15,16]],['🏛️','Government','Safety and city services',[6,7,13]],['🎓','Education & health','Learning and care',[8,17,12,11,18]],['🌳','Leisure & tourism','Attract visitors',[9,19,20,10]]];
-const TIP={0:'Removes a building (free)',1:'Zones only grow beside powered roads',2:'Homes. More people, more taxes',3:'Shops. Jobs and extra income',4:'Factories. Jobs and goods, but they pollute',5:'+40 power. Pollutes nearby homes',14:'+12 power. Clean and cheap',15:'+25 power. Clean',16:'+160 power. Neighbours feel uneasy',6:'Unlocks policies, boosts tax',7:'Raises happiness nearby',13:'Stops fires within 7 tiles',8:'Education + happiness nearby',17:'Small education boost',12:'Big education boost, draws tourists',11:'Big happiness boost nearby',18:'Cheap local health care',9:'Happiness + tourism',19:'Huge tourist draw',20:'Tourists + happiness',10:'Tourist magnet'};
+const TIP={0:'Drag to select an area and remove buildings (free)',1:'Drag a straight line. Zones grow beside powered roads',2:'Drag an area of homes (occupied tiles are skipped)',3:'Drag an area of shops (occupied tiles are skipped)',4:'Drag an area of factories (occupied tiles are skipped)',5:'+40 power. Pollutes nearby homes',14:'+12 power. Clean and cheap',15:'+25 power. Clean',16:'+160 power. Neighbours feel uneasy',6:'Unlocks policies, boosts tax',7:'Raises happiness nearby',13:'Stops fires within 7 tiles',8:'Education + happiness nearby',17:'Small education boost',12:'Big education boost, draws tourists',11:'Big happiness boost nearby',18:'Cheap local health care',9:'Happiness + tourism',19:'Huge tourist draw',20:'Tourists + happiness',10:'Tourist magnet'};
 const CH=[];
 const openCat=(c,v)=>CH.forEach(o=>{const s=o===c&&v;o.bx.hidden=!s;o.h.classList.toggle('open',s);o.h.setAttribute('aria-expanded',s)});
-function selTool(){const t=T[tool];
+function selTool(){cancelDrag();const t=T[tool];
   $('#sel').innerHTML=`<div class="sh"><span class="si">${t[1]}</span><div><b>${t[0]}</b><div class="mu">${t[2]?'Cost $'+f(t[2]):'Free'}</div></div></div><div class="mu">${TIP[tool]||''}</div>`;
   document.querySelectorAll('#tools .tb').forEach(x=>x.classList.toggle('on',+x.dataset.i==tool));
   CH.forEach(o=>o.h.classList.toggle('has',o.ids.includes(tool)))}
@@ -462,7 +504,7 @@ $('#ex').onclick=()=>{const n=nextLand();if(!n)return;if(cash<n[1])return deny('
   cash-=n[1];land=n[0];sfx('expand');burst(N/2,N/2,['#3ddc84','#bef264','#fff'],50,4);ftxt('🌍 '+land+'×'+land,'#bef264',mid());
   setCity('me',G,name);hud();exLabel();save();if(room)send(snap())};
 /* saved cities */
-function afterSwitch(){
+function afterSwitch(){cancelDrag();
   $('#nm').value=name;S=calc();S.inc=0;exLabel();syncUI();finUI();focusId='me';pan.set(0,0,0);
   if(av.me){scene.remove(av.me.g);delete av.me}
   if($('#game').style.display=='grid'){setCity('me',G,name);hud();cam.r=cl(10+land*1.1,18,50);if(room)send(snap())}
