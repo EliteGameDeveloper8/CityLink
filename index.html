@@ -18,12 +18,12 @@ button:focus-visible{outline:2px solid var(--ac)}
 h1{margin:0;font:800 34px/1 Georgia,serif;letter-spacing:-1px}h1 i{color:var(--ac)}
 .row{display:flex;gap:8px}.row>*{min-width:0}.row input{flex:1}
 #cd{text-transform:uppercase;letter-spacing:4px;text-align:center}
-#game{display:none;padding:10px;gap:10px;grid-template-columns:190px minmax(0,1fr) 290px;align-items:start}
+#game{display:none;padding:10px;gap:10px;grid-template-columns:240px minmax(0,1fr) 300px;align-items:start}
 #top{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:8px 12px}
 #hud{display:flex;flex-wrap:wrap;gap:4px 16px;flex:1}#hud b{color:var(--ac)}
 #rm{font-weight:700;color:var(--ac)}
-#tools{display:grid;gap:4px;background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:8px}
-#tools button{display:flex;justify-content:space-between;gap:6px;padding:6px 8px;text-align:left}
+#tools{display:grid;gap:4px;align-content:start;max-height:min(84vh,860px);overflow-y:auto;background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:8px}
+#tools button{padding:6px 8px;text-align:left}
 #tools button.on{background:var(--ac);color:var(--ink);border-color:var(--ac)}
 #tools .on .mu{color:var(--ink)}
 #stage{position:relative;height:min(76vh,760px);min-height:380px;border-radius:12px;overflow:hidden;border:1px solid var(--ln)}
@@ -35,14 +35,28 @@ h1{margin:0;font:800 34px/1 Georgia,serif;letter-spacing:-1px}h1 i{color:var(--a
 .tr{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.tr input{width:62px;padding:6px}.tr select{padding:6px 2px}
 #toasts{position:fixed;right:12px;bottom:12px;display:grid;gap:8px;z-index:9;max-width:min(340px,92vw)}
 .t{background:#223044;border:1px solid var(--ac);border-radius:10px;padding:10px 12px;display:grid;gap:8px}
-@media(max-width:900px){#game{grid-template-columns:1fr}#tools .cb{grid-template-columns:repeat(auto-fill,minmax(135px,1fr))}}
+@media(max-width:900px){#game{grid-template-columns:1fr}#tools{max-height:none}#tools .cb{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}}
 [hidden]{display:none!important}
 .modal{position:fixed;inset:0;background:#000b;display:grid;place-items:center;z-index:20;padding:12px}
 .ft{position:absolute;pointer-events:none;font-weight:700;text-shadow:0 1px 3px #000;animation:rise 1.1s ease-out forwards;z-index:5}
 @keyframes rise{to{transform:translateY(-48px);opacity:0}}
 @keyframes bad{30%{background:#6b1f1f}}#top.bad{animation:bad .4s}
 button:active{transform:scale(.96)}
-#tools .ch{font-weight:700;justify-content:flex-start}#tools .cb{display:grid;gap:4px;padding:0 0 4px 6px}
+#sel{background:#1f2a38;border:1px solid var(--ln);border-radius:10px;padding:8px;display:grid;gap:4px}
+.sh{display:flex;gap:10px;align-items:center}.si{font-size:28px}
+#tools .ch{display:flex;align-items:center;gap:8px;font-weight:700}
+.chev{display:inline-block;width:10px;color:var(--ac);transition:transform .15s}
+.ch.open .chev{transform:rotate(90deg)}
+#tools .ch.open{border-color:var(--ac)}
+#tools .ch.has>span:nth-child(2){color:var(--ac)}
+.badge{margin-left:auto;font-size:11px;background:#2f3b4e;border-radius:10px;padding:1px 7px;color:var(--mu)}
+#tools .cb{display:grid;gap:4px;padding:0 0 6px 8px;border-left:2px solid var(--ln);margin-left:6px}
+#tools .tb{display:grid;grid-template-columns:1fr auto;gap:0 6px}
+#tools .tb .tp{grid-column:1/-1;font-size:11px;line-height:1.25}
+#tools .tb.cant{opacity:.5}
+.pg{font-weight:700;margin-top:6px;font-size:12px;color:var(--ac)}
+#pol.lock label:not(.sel){opacity:.5}
+.oc .sel{justify-content:space-between;align-items:center}.oc .sel select{max-width:62%}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -60,15 +74,15 @@ button:active{transform:scale(.96)}
 
 <div id="game">
   <div id="top"><div id="hud"></div><span id="rm"></span><select id="vw" title="Map overlay"><option value="">View: Normal</option><option value="z">View: Zones</option><option value="h">View: Happiness</option></select><button id="hm">🏠 My city</button><button id="md">✏️ Build mode</button><button id="cp">Copy invite link</button><button id="sm">📂 Saves</button><button id="mt" title="Sound">🔊</button><button id="lv">Leave</button></div>
-  <div id="tools"><button id="ex" class="pri"></button></div>
+  <div id="tools"><div id="sel"></div><button id="ex" class="pri"></button></div>
   <div id="stage"><canvas id="cv"></canvas><div id="help" class="mu">Drag: build, WASD: move · Right-drag or two fingers: look · Wheel: zoom</div></div>
-  <div id="others"><div class="oc" id="pol"><h3>🏛️ Policies</h3><label>Tax rate <select id="tx"><option value="0">Low</option><option value="1">Normal</option><option value="2">High</option></select></label></div><p class="mu" id="emp">Nobody else is here yet. Copy the invite link and send it to a friend.</p></div>
+  <div id="others"><div class="oc" id="pol"><h3>🏛️ Policies</h3><div class="mu" id="pinfo"></div><label class="sel">Tax rate <select id="tx"><option value="0">Low (happier, less income)</option><option value="1">Normal</option><option value="2">High (more income, unhappy)</option></select></label><label class="sel">Services budget <select id="sv2"><option value="0">Low (-30% upkeep)</option><option value="1">Normal</option><option value="2">High (+40% upkeep)</option></select></label></div><p class="mu" id="emp">Nobody else is here yet. Copy the invite link and send it to a friend.</p></div>
 </div>
 <div id="sv" class="modal" hidden><div class="box" style="width:min(480px,100%)"><h2 style="margin:0">📂 Saved cities</h2><div id="sl" style="display:grid;gap:6px;max-height:50vh;overflow:auto"></div><div class="row"><input id="nn" maxlength="16" placeholder="New city name"><button class="pri" id="nc">New city</button></div><button id="sx">Close</button></div></div>
 <div id="toasts"></div>
 
 <script>
-const $=s=>document.querySelector(s),N=32,SP=N+5,CAP=5200,PFX='citylink-',f=n=>Math.round(n||0).toLocaleString(),cl=(v,a,b)=>Math.min(b,Math.max(a,v));
+const $=s=>document.querySelector(s),N=32,SP=N+5,CAP=16000,PFX='citylink-',f=n=>Math.round(n||0).toLocaleString(),cl=(v,a,b)=>Math.min(b,Math.max(a,v));
 // tool index = tile type
 const T=[['Bulldoze','🧹',0],['Road','🛣️',10],['Residential','🏠',15],['Commercial','🏪',15],['Industrial','🏭',15],['Coal plant','⚡',400],['Town hall','🏛️',600],['Police','🚓',250],['School','🎓',250],['Park','🌳',60],['Landmark','🗼',1500],['Hospital','🏥',450],['University','🏫',900],['Fire station','🚒',300],['Wind turbine','🌬️',200],['Solar farm','☀️',600],['Nuclear plant','☢️',3000],['Library','📚',200],['Clinic','⚕️',150],['Stadium','🏟️',2500],['Museum','🖼️',800]];
 const K=['','rd','r','c','i','pw','th','pl','sc','pk','lm','ho','un','fd','wt','so','nu','li','cn','sd','mu'];
@@ -116,7 +130,7 @@ function hmap(g,rec){
 function boxes(g,LN,mine){
   const L=[],rd=j=>j>=0&&j<N*N&&g[j]>>2==1,hm=ov=='h'&&hmap(g,pol.rec);L.push([N/2,-.3,N/2,LN+1,.5,LN+1,'#5b4a38']);
   g.forEach((v,i)=>{
-    const t=v>>2,l=v&3,c=i%N,r=i/N|0,x=c+.5,z=r+.5,j=(i*7919%13)/13,add=(...b)=>L.push(b);
+    const t=v>>2,l=v&3,c=i%N,r=i/N|0,x=c+.5,z=r+.5,j=(i*7919%13)/13,add=(...b)=>L.push(b),W='#bfe3ff';
     if(!own(i,LN)){if(mine&&LN<N&&own(i,LN+4))add(x,.03,z,.98,.06,.98,'#8c8466');return}
     let gc=t==1?'#3a3d4a':t==9?'#4cbf6a':t>4?'#9aa0a8':(c+r)%2?'#6aa65a':'#72ad60';
     if(ov=='z'&&t!=1)gc=ZG[t]||'#56634f';
@@ -124,27 +138,117 @@ function boxes(g,LN,mine){
     add(x,.05,z,.98,.1,.98,gc);
     if(t==0&&!ov&&i*131%17<2){add(x+.1,.28,z-.1,.1,.35,.1,'#7a5230');add(x+.1,.62,z-.1,.4,.45,.4,'#2d9a52')}
     else if(t==1){if((c>0&&rd(i-1))||(c<N-1&&rd(i+1)))add(x,.11,z,1,.02,.08,'#f2cf66');if(rd(i-N)||rd(i+N))add(x,.11,z,.08,.02,1,'#f2cf66')}
-    else if(t==2&&l){const h=.3+.3*l+j*.12;add(x,.1+h/2,z,.6,h,.6,WALL[(i>>1)%3]);add(x,.1+h+.06,z,.7,.12,.7,ROOF[i%3])}
-    else if(t==3&&l){const h=.5+.6*l+j*.25;add(x,.1+h/2,z,.7,h,.7,'#8db6ee');add(x,.1+h+.04,z,.5,.08,.5,'#e0ecff')}
-    else if(t==4&&l){const h=.3+.2*l;add(x,.1+h/2,z,.85,h,.8,'#cbbf99');add(x+.25,.1+h+.25,z+.25,.16,.5+.15*l,.16,'#555')}
-    else if(t==5){add(x,.5,z,.8,.8,.8,'#ef4444');add(x+.22,1.1,z+.22,.18,.9,.18,'#333')}
-    else if(t==6){add(x,.4,z,.9,.6,.9,'#f5e6b8');add(x,.9,z,.5,.4,.5,'#f59e0b');add(x,1.3,z,.07,.4,.07,'#fff')}
-    else if(t==7){add(x,.35,z,.8,.5,.8,'#3b82f6');add(x,.7,z,.2,.2,.2,'#ef4444')}
-    else if(t==8){add(x,.35,z,.85,.5,.7,'#fb923c');add(x,.67,z,.92,.14,.78,'#7c2d12')}
-    else if(t==9){add(x-.2,.35,z-.2,.12,.5,.12,'#7a5230');add(x-.2,.75,z-.2,.42,.42,.42,'#1f8f4e');add(x+.22,.3,z+.2,.1,.4,.1,'#7a5230');add(x+.22,.6,z+.2,.34,.34,.34,'#2fb463')}
-    else if(t==10){add(x,.5,z,.8,.8,.8,'#a855f7');add(x,1.3,z,.5,.8,.5,'#c084fc');add(x,2,z,.25,.7,.25,'#e9d5ff')}
-    else if(t==11){add(x,.45,z,.85,.7,.85,'#f4f6f8');add(x,.85,z,.45,.08,.15,'#e63946');add(x,.85,z,.15,.08,.45,'#e63946')}
-    else if(t==12){add(x,.45,z,.9,.7,.5,'#d9b38c');add(x+.3,.9,z,.2,1.1,.2,'#c49a6c');add(x,.88,z,.95,.1,.55,'#7c4a2d')}
-    else if(t==13){add(x,.35,z,.85,.5,.7,'#dc2626');add(x,.62,z,.9,.1,.75,'#f8fafc');add(x-.3,.7,z-.2,.2,.9,.2,'#b91c1c')}
-    else if(t==14){add(x,.9,z,.08,1.6,.08,'#e5e7eb');add(x,1.7,z,.9,.06,.05,'#f8fafc');add(x,1.7,z,.06,.9,.05,'#f8fafc')}
-    else if(t==15){add(x,.16,z,.9,.08,.9,'#1e3a8a');add(x-.25,.22,z,.12,.04,.8,'#60a5fa');add(x,.22,z,.12,.04,.8,'#60a5fa');add(x+.25,.22,z,.12,.04,.8,'#60a5fa')}
-    else if(t==16){add(x,.6,z,.8,1,.8,'#d1d5db');add(x,1.2,z,.6,.3,.6,'#9ca3af');add(x,1.55,z,.35,.3,.35,'#f8fafc')}
-    else if(t==17){add(x,.35,z,.85,.5,.7,'#a16207');add(x,.68,z,.9,.12,.75,'#fde68a')}
-    else if(t==18){add(x,.3,z,.7,.4,.7,'#f4f6f8');add(x,.55,z,.3,.06,.1,'#e63946');add(x,.55,z,.1,.06,.3,'#e63946')}
-    else if(t==19){add(x,.4,z,.98,.6,.98,'#cbd5e1');add(x,.72,z,.62,.04,.62,'#22c55e')}
-    else if(t==20){add(x,.3,z,.9,.4,.7,'#e5e7eb');add(x,.62,z,.95,.14,.75,'#9ca3af');add(x-.3,.35,z+.38,.08,.5,.08,'#fff');add(x+.3,.35,z+.38,.08,.5,.08,'#fff')}
+    else if(t==2&&l){
+      const h=.3+.3*l+j*.12,wc=WALL[(i>>1)%3],rc=ROOF[i%3];
+      add(x,.1+h/2,z,.6,h,.6,wc);
+      add(x,.1+h+.05,z,.72,.1,.72,rc);add(x,.1+h+.14,z,.5,.1,.5,rc);add(x,.1+h+.2,z,.24,.06,.24,rc);
+      add(x+.17,.1+h+.22,z-.14,.09,.2,.09,'#8a5a44');
+      add(x,.23,z+.31,.14,.26,.02,'#5a3a22');add(x+.2,.15,z+.4,.14,.1,.12,'#3f9a4f');
+      for(let k=0;k<l;k++){const wy=.36+k*.3;add(x-.17,wy,z+.31,.12,.12,.02,W);add(x+.17,wy,z+.31,.12,.12,.02,W);add(x+.31,wy,z,.02,.12,.12,W)}}
+    else if(t==3&&l){
+      const h=.5+.6*l+j*.25,gl=['#8db6ee','#9bd0c8','#c9b5ee'][i%3],aw=['#e11d48','#f59e0b','#10b981'][i%3];
+      add(x,.1+h/2,z,.7,h,.7,gl);add(x,.1+h+.04,z,.76,.08,.76,'#e0ecff');
+      add(x-.15,.1+h+.14,z-.1,.2,.12,.2,'#9aa4b0');add(x+.2,.1+h+.3,z+.15,.04,.4,.04,'#555');
+      add(x,.4,z+.43,.62,.04,.16,aw);add(x,.2,z+.36,.14,.2,.02,'#27323f');
+      for(let k=0;k<l*2;k++)add(x,.55+k*.27,z+.36,.56,.1,.02,'#d6ecff')}
+    else if(t==4&&l){
+      const h=.3+.2*l;
+      add(x,.1+h/2,z,.85,h,.8,'#cbbf99');
+      for(let k=0;k<3;k++)add(x-.28+k*.28,.1+h+.06,z,.26,.12,.76,k%2?'#8f8a74':'#a39d85');
+      add(x-.1,.23,z+.41,.3,.24,.02,'#4b5563');add(x,.1+h*.6,z+.41,.85,.04,.02,'#f59e0b');
+      add(x+.25,.1+h+.2,z+.1,.2,.12,.2,'#9ca3af');
+      for(let k=0;k<l;k++){const ch=.45+.12*k;add(x+.32-k*.14,.1+h+.12+ch/2,z-.25,.1,ch,.1,'#6b7280');add(x+.32-k*.14,.1+h+.12+ch+.03,z-.25,.13,.06,.13,'#374151')}}
+    else if(t==5){
+      add(x,.35,z+.12,.86,.5,.6,'#b84a3a');add(x,.62,z+.12,.9,.06,.64,'#6b2a22');
+      add(x-.28,.35,z+.43,.14,.14,.02,'#fde68a');add(x,.35,z+.43,.14,.14,.02,'#fde68a');add(x+.28,.35,z+.43,.14,.14,.02,'#fde68a');
+      add(x+.22,.75,z-.28,.22,.9,.22,'#c9ccd1');add(x+.22,1.1,z-.28,.24,.1,.24,'#ef4444');add(x+.22,1.3,z-.28,.18,.3,.18,'#c9ccd1');
+      add(x-.2,.6,z-.28,.16,.5,.16,'#9ca3af');add(x-.2,.88,z-.28,.19,.06,.19,'#ef4444');
+      add(x+.22,1.58,z-.28,.2,.12,.2,'#6b7280');add(x+.26,1.74,z-.26,.15,.12,.15,'#9ca3af');
+      add(x,.7,z+.1,.5,.06,.1,'#4b5563');add(x-.3,.74,z+.12,.2,.1,.2,'#1f2937')}
+    else if(t==6){
+      add(x,.15,z+.04,.96,.1,.8,'#d6d3c9');add(x,.5,z,.8,.55,.6,'#f5e6b8');
+      for(let k=0;k<4;k++)add(x-.3+k*.2,.5,z+.34,.06,.55,.06,'#fff');
+      add(x,.8,z+.05,.92,.1,.74,'#e8d7a8');add(x,.89,z+.05,.6,.08,.56,'#dcc88f');
+      add(x,.3,z+.31,.16,.3,.02,'#5a3a22');
+      add(x,.99,z,.34,.12,.34,'#d97706');add(x,1.1,z,.24,.12,.24,'#f59e0b');add(x,1.2,z,.14,.1,.14,'#fbbf24');
+      add(x,1.45,z,.03,.4,.03,'#fff');add(x+.07,1.57,z,.12,.08,.02,'#ef4444')}
+    else if(t==7){
+      add(x,.35,z,.8,.5,.7,'#3b82f6');add(x,.64,z,.86,.08,.76,'#1e40af');
+      add(x-.08,.74,z,.08,.08,.08,'#ef4444');add(x+.08,.74,z,.08,.08,.08,'#38bdf8');
+      add(x,.25,z+.36,.14,.3,.02,'#0f172a');add(x,.52,z+.36,.22,.08,.02,'#facc15');
+      add(x-.27,.38,z+.36,.14,.14,.02,W);add(x+.27,.38,z+.36,.14,.14,.02,W);
+      add(x+.32,.15,z+.43,.2,.08,.12,'#f8fafc');add(x+.32,.2,z+.43,.1,.04,.06,'#ef4444')}
+    else if(t==8){
+      add(x,.35,z,.85,.5,.7,'#fb923c');add(x,.67,z,.92,.14,.78,'#7c2d12');
+      add(x+.3,.85,z-.1,.2,.9,.2,'#fdba74');add(x+.3,1.34,z-.1,.26,.1,.26,'#7c2d12');add(x+.3,1.0,z+.01,.12,.12,.02,'#fff');
+      add(x-.3,1.0,z-.1,.025,.55,.025,'#e5e7eb');add(x-.26,1.2,z-.1,.1,.06,.02,'#2563eb');
+      for(let k=0;k<3;k++)add(x-.28+k*.2,.42,z+.36,.12,.16,.02,W);
+      add(x+.3,.28,z+.36,.14,.26,.02,'#7c2d12')}
+    else if(t==9){
+      add(x,.11,z,.14,.02,1,'#d9c9a3');add(x+.25,.11,z+.2,.3,.02,.26,'#4aa8d8');
+      add(x-.2,.35,z-.2,.12,.5,.12,'#7a5230');add(x-.2,.75,z-.2,.42,.42,.42,'#1f8f4e');
+      add(x+.22,.3,z-.25,.1,.4,.1,'#7a5230');add(x+.22,.62,z-.25,.34,.34,.34,'#2fb463');
+      add(x-.3,.3,z+.3,.08,.3,.08,'#7a5230');add(x-.3,.52,z+.3,.3,.3,.3,'#3aa65a');
+      add(x-.22,.17,z+.02,.12,.05,.22,'#8b5a2b');add(x-.28,.24,z+.02,.03,.12,.22,'#8b5a2b');
+      add(x+.38,.14,z-.1,.06,.06,.06,'#f472b6');add(x+.32,.14,z+.42,.06,.06,.06,'#fde047');add(x-.4,.14,z-.4,.06,.06,.06,'#f87171')}
+    else if(t==10){
+      add(x,.17,z,.92,.14,.92,'#6d28d9');
+      for(let a=-1;a<=1;a+=2)for(let b=-1;b<=1;b+=2)add(x+a*.22,.6,z+b*.22,.08,.9,.08,'#a855f7');
+      add(x,1.08,z,.62,.08,.62,'#c084fc');add(x,1.55,z,.2,.9,.2,'#c084fc');
+      add(x,1.98,z,.5,.08,.5,'#e9d5ff');add(x,2.2,z,.36,.3,.36,'#bfdbfe');add(x,2.5,z,.1,.5,.1,'#e9d5ff');add(x,2.82,z,.14,.14,.14,'#fde047')}
+    else if(t==11){
+      add(x,.5,z,.85,.8,.7,'#f4f6f8');add(x,.92,z,.9,.06,.75,'#cbd5e1');
+      add(x,.97,z+.05,.45,.05,.14,'#e63946');add(x,.97,z+.05,.14,.05,.45,'#e63946');add(x-.3,.96,z-.2,.2,.02,.2,'#2563eb');
+      add(x,.7,z+.36,.3,.08,.02,'#e63946');add(x,.7,z+.36,.08,.3,.02,'#e63946');
+      for(let k=0;k<2;k++)for(let m=0;m<2;m++)add(x+(k?.3:-.3),.45+m*.25,z+.36,.14,.12,.02,'#9ed0f0');
+      add(x,.2,z+.36,.2,.2,.02,'#4b6a88');
+      add(x+.3,.17,z+.44,.2,.12,.1,'#fff');add(x+.3,.25,z+.44,.06,.04,.06,'#ef4444')}
+    else if(t==12){
+      add(x,.4,z,.9,.6,.55,'#d9b38c');add(x,.74,z,.96,.1,.6,'#7c4a2d');
+      for(let k=0;k<5;k++)add(x-.36+k*.18,.4,z+.3,.06,.6,.06,'#f3e7d3');
+      add(x,.25,z+.28,.16,.3,.02,'#3b2314');add(x-.27,.5,z+.28,.1,.18,.02,W);add(x+.27,.5,z+.28,.1,.18,.02,W);
+      add(x,1.08,z-.05,.3,.62,.3,'#c49a6c');add(x,1.42,z-.05,.38,.08,.38,'#7c4a2d');add(x,1.64,z-.05,.08,.36,.08,'#7c4a2d');add(x,1.12,z+.11,.14,.14,.02,'#fff')}
+    else if(t==13){
+      add(x,.35,z,.9,.55,.7,'#dc2626');add(x,.66,z,.95,.08,.75,'#f8fafc');
+      add(x-.22,.3,z+.36,.3,.38,.02,'#fecaca');add(x+.22,.3,z+.36,.3,.38,.02,'#fecaca');
+      for(let k=0;k<3;k++){add(x-.22,.15+k*.12,z+.37,.3,.03,.02,'#b91c1c');add(x+.22,.15+k*.12,z+.37,.3,.03,.02,'#b91c1c')}
+      add(x,.57,z+.36,.4,.08,.02,'#fff');
+      add(x-.3,.85,z-.2,.2,.9,.2,'#b91c1c');add(x-.3,1.33,z-.2,.26,.08,.26,'#f8fafc');add(x+.3,.74,z-.2,.1,.08,.1,'#fbbf24')}
+    else if(t==14){
+      add(x,.14,z,.34,.08,.34,'#9ca3af');add(x,.55,z,.12,.8,.12,'#d1d5db');add(x,1.2,z,.08,.6,.08,'#e5e7eb');
+      add(x,1.55,z+.05,.12,.12,.24,'#f8fafc');add(x,1.55,z+.18,.1,.1,.04,'#9ca3af');
+      add(x,1.9,z+.2,.05,.6,.02,'#fff');add(x,1.55,z+.2,.6,.05,.02,'#fff');add(x,2.22,z+.2,.06,.04,.03,'#ef4444')}
+    else if(t==15){
+      add(x,.14,z,.94,.04,.94,'#374151');
+      for(let a=0;a<2;a++)for(let b=0;b<2;b++){const px=x-.22+a*.44,pz=z-.22+b*.44;
+        add(px,.22,pz,.38,.04,.38,'#1e3a8a');add(px,.245,pz,.34,.01,.03,'#60a5fa');add(px,.245,pz-.1,.34,.01,.03,'#60a5fa');add(px,.245,pz+.1,.34,.01,.03,'#60a5fa');add(px,.17,pz,.04,.06,.04,'#9ca3af')}}
+    else if(t==16){
+      add(x-.2,.35,z-.2,.42,.5,.42,'#d1d5db');add(x-.2,.75,z-.2,.32,.3,.32,'#e5e7eb');add(x-.2,1.0,z-.2,.36,.2,.36,'#d1d5db');
+      add(x-.2,1.2,z-.2,.28,.2,.28,'#f8fafc');add(x-.12,1.4,z-.2,.2,.16,.2,'#f1f5f9');
+      add(x+.25,.35,z+.2,.4,.5,.4,'#9ca3af');add(x+.25,.66,z+.2,.3,.14,.3,'#cbd5e1');add(x+.25,.78,z+.2,.18,.1,.18,'#e2e8f0');
+      add(x+.25,.3,z+.41,.1,.1,.02,'#facc15');add(x-.25,.2,z+.32,.3,.2,.24,'#6b7280')}
+    else if(t==17){
+      add(x,.35,z,.85,.5,.7,'#a16207');add(x,.68,z,.9,.12,.75,'#fde68a');add(x,.8,z+.05,.5,.1,.5,'#fcd34d');
+      for(let k=0;k<4;k++)add(x-.27+k*.18,.35,z+.37,.05,.5,.05,'#fef3c7');
+      add(x,.14,z+.45,.8,.06,.12,'#e5e7eb');add(x,.25,z+.36,.14,.26,.02,'#4a2c0a');
+      ['#dc2626','#2563eb','#16a34a','#f59e0b'].forEach((cc,k)=>add(x-.12+k*.08,.88,z+.05,.05,.1,.04,cc))}
+    else if(t==18){
+      add(x,.3,z,.7,.4,.7,'#f4f6f8');add(x,.54,z,.76,.06,.76,'#e2e8f0');
+      add(x,.62,z,.3,.06,.1,'#e63946');add(x,.62,z,.1,.06,.3,'#e63946');
+      add(x,.4,z+.4,.4,.04,.1,'#22c55e');add(x,.22,z+.36,.16,.22,.02,'#334155');
+      add(x-.25,.34,z+.36,.12,.12,.02,W);add(x+.25,.34,z+.36,.12,.12,.02,W);add(x+.3,.14,z+.42,.1,.1,.1,'#16a34a')}
+    else if(t==19){
+      add(x,.14,z,.6,.04,.6,'#22c55e');add(x,.16,z,.03,.01,.56,'#fff');add(x,.16,z,.16,.01,.16,'#bbf7d0');
+      add(x,.4,z-.4,.98,.5,.18,'#cbd5e1');add(x,.4,z+.4,.98,.5,.18,'#cbd5e1');add(x-.4,.4,z,.18,.5,.62,'#cbd5e1');add(x+.4,.4,z,.18,.5,.62,'#cbd5e1');
+      add(x,.67,z-.4,.98,.05,.2,'#e11d48');add(x,.67,z+.4,.98,.05,.2,'#2563eb');add(x-.4,.67,z,.2,.05,.62,'#facc15');add(x+.4,.67,z,.2,.05,.62,'#facc15');
+      for(let a=-1;a<=1;a+=2)for(let b=-1;b<=1;b+=2){add(x+a*.45,.9,z+b*.45,.05,1.6,.05,'#9ca3af');add(x+a*.45,1.72,z+b*.45,.14,.06,.14,'#fde047')}}
+    else if(t==20){
+      add(x,.3,z,.9,.4,.7,'#e5e7eb');add(x,.62,z,.95,.14,.75,'#9ca3af');add(x,.74,z+.05,.6,.1,.5,'#d1d5db');
+      for(let k=0;k<5;k++)add(x-.36+k*.18,.35,z+.38,.05,.5,.05,'#fff');
+      add(x,.14,z+.45,.84,.06,.12,'#e5e7eb');add(x,.25,z+.36,.14,.24,.02,'#475569');
+      add(x-.27,.42,z+.36,.1,.28,.02,'#dc2626');add(x+.27,.42,z+.36,.1,.28,.02,'#2563eb')}
   });return L}
-function fill(m,L){m.count=CAP;dummy.rotation.set(0,0,0);
+function fill(m,L){if(L.length>CAP)L.length=CAP;m.count=CAP;dummy.rotation.set(0,0,0);
   L.forEach((b,i)=>{dummy.position.set(b[0],b[1],b[2]);dummy.scale.set(b[3],b[4],b[5]);dummy.updateMatrix();m.setMatrixAt(i,dummy.matrix);m.setColorAt(i,col.set(b[6]))});
   m.count=L.length;m.instanceMatrix.needsUpdate=true;m.instanceColor.needsUpdate=true}
 function label(txt,sc,bg){
@@ -154,14 +258,14 @@ function label(txt,sc,bg){
 /* cars and pedestrians wander along the road graph */
 const rn=(g,i)=>{const c=i%N,a=[];if(c>0&&g[i-1]>>2==1)a.push(i-1);if(c<N-1&&g[i+1]>>2==1)a.push(i+1);if(i>=N&&g[i-N]>>2==1)a.push(i-N);if(i<N*N-N&&g[i+N]>>2==1)a.push(i+N);return a};
 const nxt=(g,i,pv)=>{const a=rn(g,i),b=a.filter(x=>x!=pv),k=b.length?b:a;return k.length?k[Math.random()*k.length|0]:i};
-const spawn=(o,k)=>{const i=o.rd[Math.random()*o.rd.length|0];return{i,n:nxt(o.g2,i,-1),p:Math.random(),s:.7+Math.random()*.6,c:new THREE.Color(rnd(k=='cars'?CC:PC)),d:new THREE.Color(k=='cars'?'#1f2937':rnd(SK))}};
+const spawn=(o,k)=>{const i=o.rd[Math.random()*o.rd.length|0];return{i,n:nxt(o.g2,i,-1),p:Math.random(),s:.7+Math.random()*.6,c:new THREE.Color(rnd(k=='cars'?CC:PC)),d:new THREE.Color(k=='cars'?'#e6f1ff':rnd(SK))}};
 function sync(o,g){
   o.g2=g;const rd=[];let pop=0;g.forEach((v,i)=>{const t=v>>2;if(t==1)rd.push(i);else if(t==2)pop+=v&3});o.rd=rd;
   const w={cars:rd.length>1?Math.min(80,rd.length>>1):0,ppl:rd.length>1?Math.min(100,2+pop*2):0};
   for(const k in w){const A=o[k];A.forEach((a,j)=>{if(g[a.i]>>2!=1||g[a.n]>>2!=1)A[j]=spawn(o,k)});
     while(A.length<w[k])A.push(spawn(o,k));A.length=Math.min(A.length,w[k])}}
 function move(o,dt){
-  [['cars',o.cm,.9,.16,[.2,.1,.36],.07,[.15,.08,.2],.16],['ppl',o.pm,.35,-.34,[.09,.17,.09],.1,[.1,.1,.1],.2]].forEach(([k,m,sp,ln,sc,y,sc2,y2])=>{
+  [['cars',o.cm,.9,.16,[.26,.12,.5],.04,[.2,.1,.26],.14],['ppl',o.pm,.35,-.34,[.11,.2,.11],.08,[.12,.12,.12],.24]].forEach(([k,m,sp,ln,sc,y,sc2,y2])=>{
     let n=0;
     o[k].forEach(a=>{
       a.p+=dt*sp*a.s;if(a.p>=1){a.p-=1;const pv=a.i;a.i=a.n;a.n=nxt(o.g2,a.i,pv)}
@@ -170,7 +274,7 @@ function move(o,dt){
       dummy.position.set(px,y+.1,pz);dummy.scale.set(...sc);dummy.updateMatrix();m.setMatrixAt(n,dummy.matrix);m.setColorAt(n++,a.c);
       dummy.position.set(px,y2+.1,pz);dummy.scale.set(...sc2);dummy.updateMatrix();m.setMatrixAt(n,dummy.matrix);m.setColorAt(n++,a.d)});
     m.count=n;m.instanceMatrix.needsUpdate=m.instanceColor.needsUpdate=true})}
-const mkI=n=>{const m=new THREE.InstancedMesh(BOX,MAT,n);m.frustumCulled=false;m.castShadow=true;m.count=0;m.setColorAt(0,col.set('#fff'));return m};
+const mkI=n=>{const m=new THREE.InstancedMesh(BOX,MAT,n);m.frustumCulled=false;m.castShadow=true;m.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(n*3).fill(1),3);m.instanceColor.setUsage(THREE.DynamicDrawUsage);m.count=0;return m};
 function setCity(id,g,nm,gs,L){
   let o=cities[id];
   if(!o){const m=new THREE.InstancedMesh(BOX,MAT,CAP),gr=new THREE.Group();m.frustumCulled=false;m.castShadow=m.receiveShadow=true;
@@ -180,7 +284,7 @@ function setCity(id,g,nm,gs,L){
 
 /* ---------- feedback: particles, floating text, sound ---------- */
 const GOLD=['#ffd23f','#fff3b0'],CONF=['#f43f5e','#facc15','#22d3ee','#a3e635','#c084fc'],rnd=a=>a[Math.random()*a.length|0],mid=()=>[stage.clientWidth/2,stage.clientHeight/2];
-const FX=new THREE.InstancedMesh(BOX,new THREE.MeshBasicMaterial(),320),parts=[];FX.frustumCulled=false;FX.count=0;FX.setColorAt(0,col.set('#fff'));scene.add(FX);
+const FX=new THREE.InstancedMesh(BOX,new THREE.MeshBasicMaterial(),320),parts=[];FX.frustumCulled=false;FX.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(320*3).fill(1),3);FX.instanceColor.setUsage(THREE.DynamicDrawUsage);FX.count=0;scene.add(FX);
 function burst(x,z,c,n=12,up=2.5){for(let k=0;k<n;k++)parts.push({x,y:.25,z,vx:(Math.random()-.5)*2.4,vy:1+Math.random()*up,vz:(Math.random()-.5)*2.4,l:1,s:.07+Math.random()*.1,c:new THREE.Color(rnd(c))});if(parts.length>320)parts.splice(0,parts.length-320)}
 function fx(dt){let n=0;dummy.rotation.set(0,0,0);
   for(let k=parts.length-1;k>=0;k--){const q=parts[k];q.l-=dt*1.3;if(q.l<=0){parts.splice(k,1);continue}
@@ -267,19 +371,22 @@ cv.oncontextmenu=e=>e.preventDefault();
 
 /* ---------- simulation ---------- */
 const near=i=>{const c=i%N;return(c>0&&G[i-1]>>2==1)||(c<N-1&&G[i+1]>>2==1)||(i>=N&&G[i-N]>>2==1)||(i<N*N-N&&G[i+N]>>2==1)};
-const POL=[['rec','♻️ Recycling',6,'halves industry pollution'],['tour','📣 Tourism campaign',8,'+50% attraction'],['edu','📚 Scholarships',10,'+15% education'],['ind','🏭 Industry subsidy',5,'+40% industry income']];
+const POL=[['rec','♻️ Recycling',6,'halves industry pollution','🌿 Environment'],['green','🌞 Green energy grants',8,'+25% clean power output','🌿 Environment'],['beaut','🌷 Beautification',6,'+5% happiness','🌿 Environment'],
+  ['tour','📣 Tourism campaign',8,'+50% attraction','💰 Economy'],['ind','🏭 Industry subsidy',5,'+40% industry income','💰 Economy'],['night','🌃 Night economy',7,'+30% shop income','💰 Economy'],
+  ['edu','📚 Scholarships',10,'+15% education','🏘️ City life'],['health','⚕️ Free healthcare',12,'+7% happiness','🏘️ City life'],['boom','🏗️ Housing grants',9,'homes grow faster','🏘️ City life'],
+  ['trans','🚌 Public transport',10,'free road upkeep, +3% happiness','🏘️ City life'],['fire','🧯 Fire safety codes',6,'fires are 60% rarer','🏘️ City life']];
 const MS=[[100,'Village',500],[500,'Town',1500],[1500,'City',4000],[4000,'Metropolis',10000]];
 const po=k=>S.th>0&&pol[k];
 function calc(){
   const s={r:0,c:0,i:0,rd:0,pw:0,th:0,pl:0,sc:0,pk:0,lm:0,ho:0,un:0,fd:0,wt:0,so:0,nu:0,li:0,cn:0,sd:0,mu:0};
   G.forEach(v=>{const t=v>>2;if(t)s[K[t]]+=t>1&&t<5?v&3:1});
-  s.pop=s.r*8;s.jobs=s.c*6+s.i*8;s.sup=s.pw*40+s.wt*12+s.so*25+s.nu*160;s.dem=(s.r+s.c+s.i)*2;s.pow=s.sup>=s.dem;
-  s.hm=hmap(G,po('rec'));let w=0,u=0;G.forEach((v,i)=>{if(v>>2==2&&v&3){w+=v&3;u+=(v&3)*s.hm[i]}});
-  s.hap=Math.round(cl((w?u/w:60)+(s.th?[8,0,-10][pol.tax]:0)-(s.pow?0:15),0,100));
-  s.edu=Math.round(cl((s.sc*18+s.un*60+s.li*8)/Math.max(40,s.pop)*100+(po('edu')?15:0),0,100));
-  s.att=Math.round((s.pk+s.lm*5+s.un*3+s.sd*8+s.mu*4+(s.hap>70?3:0))*(po('tour')?1.5:1));return s}
+  s.pop=s.r*8;s.jobs=s.c*6+s.i*8;const p=k=>s.th>0&&pol[k];s.sup=s.pw*40+(s.wt*12+s.so*25+s.nu*160)*(p('green')?1.25:1);s.dem=(s.r+s.c+s.i)*2;s.pow=s.sup>=s.dem;
+  s.hm=hmap(G,p('rec'));let w=0,u=0;G.forEach((v,i)=>{if(v>>2==2&&v&3){w+=v&3;u+=(v&3)*s.hm[i]}});
+  s.hap=Math.round(cl((w?u/w:60)+(s.th?[8,0,-10][pol.tax]+[-4,0,5][pol.svc??1]+(p('beaut')?5:0)+(p('health')?7:0)+(p('trans')?3:0):0)-(s.pow?0:15),0,100));
+  s.edu=Math.round(cl((s.sc*18+s.un*60+s.li*8)/Math.max(40,s.pop)*100+(p('edu')?15:0)+(s.th?[-8,0,8][pol.svc??1]:0),0,100));
+  s.att=Math.round((s.pk+s.lm*5+s.un*3+s.sd*8+s.mu*4+(s.hap>70?3:0))*(p('tour')?1.5:1));return s}
 function fire(){
-  if(Math.random()>.04)return;const b=[];G.forEach((v,i)=>{const t=v>>2;t>1&&t<5&&v&3&&b.push(i)});if(!b.length)return;
+  if(Math.random()>(po('fire')?.015:.04))return;const b=[];G.forEach((v,i)=>{const t=v>>2;t>1&&t<5&&v&3&&b.push(i)});if(!b.length)return;
   const i=b[Math.random()*b.length|0],x=i%N,y=i/N|0;
   if(G.some((v,j)=>v>>2==13&&Math.hypot(j%N-x,(j/N|0)-y)<=7))(sfx('hi'),burst(x+.5,y+.5,['#60a5fa','#e0f2fe'],16),toast('🚒 Your fire station put out a fire'));
   else{G[i]&=~3;sfx('fire');burst(x+.5,y+.5,['#ff7b00','#ffd23f','#ff3b00','#444'],24,4);toast('🔥 A fire destroyed a building. Build a fire station!')}}
@@ -287,18 +394,18 @@ function tick(){
   S=calc();
   G.forEach((v,i)=>{const t=v>>2,l=v&3;if(t<2||t>4)return;
     if(t==2&&l&&S.hm[i]<30&&Math.random()<.12){G[i]--;return}
-    if(l<3&&S.pow&&near(i)&&(t!=2||S.hm[i]>=45)&&Math.random()<.2){
+    if(l<3&&S.pow&&near(i)&&(t!=2||S.hm[i]>=45)&&Math.random()<(t==2&&po('boom')?.32:.2)){
       const d=t==2?S.jobs-S.pop+24:t==3?S.pop*.5-S.c*6+6:S.pop*.4-S.i*8+10;if(d>0)G[i]++}});
   fire();
   gd=cl(gd+S.i*1.5*(po('ind')?1.5:1)-S.c,0,300);
-  const tx=[.8,1,1.3][S.th?pol.tax:1],inc=S.pop*.2*tx*(1+S.th*.25)*(1+S.edu/200)*S.hap/70+S.c*2.2*(gd>0?1:.5)+S.i*2*(po('ind')?1.4:1)
-    -(S.rd*.2+S.pw*6+S.th*5+S.pl*3+S.sc*3+S.pk+S.lm*8+S.ho*8+S.un*14+S.fd*4+S.wt*1.5+S.so*3+S.nu*30+S.li*4+S.cn*3+S.sd*20+S.mu*8+POL.reduce((a,p)=>a+(po(p[0])?p[2]:0),0));
+  const tx=[.8,1,1.3][S.th?pol.tax:1],inc=S.pop*.2*tx*(1+S.th*.25)*(1+S.edu/200)*S.hap/70+S.c*2.2*(gd>0?1:.5)*(po('night')?1.3:1)+S.i*2*(po('ind')?1.4:1)
+    -(S.rd*(po('trans')?0:.2)+S.pw*6+S.th*5+S.pk+S.lm*8+S.un*14+S.wt*1.5+S.so*3+S.nu*30+S.sd*20+(S.pl*3+S.sc*3+S.ho*8+S.fd*4+S.li*4+S.cn*3+S.mu*8)*(S.th?[.7,1,1.4][pol.svc??1]:1)+POL.reduce((a,p)=>a+(po(p[0])?p[2]:0),0));
   cash=Math.max(0,cash+inc);S=calc();S.inc=inc;
   while(ms<MS.length&&S.pop>=MS[ms][0]){cash+=MS[ms][2];toast(`🎯 ${MS[ms][1]} reached! Bonus $${f(MS[ms][2])}`);sfx('win');burst(N/2,N/2,CONF,50,5);ms++}
   setCity('me',G,name);hud();save();
   Object.keys(cards).forEach(id=>cards[id].querySelector('.hr').textContent=who(id));
   if(room)send(snap())}
-function hud(){$('#hud').innerHTML=`<span>💰 <b>$${f(cash)}</b> ${S.inc>=0?'+':''}${f(S.inc)}</span><span>👥 <b>${f(S.pop)}</b></span><span>💼 ${f(S.jobs)}</span><span>⚡ ${S.dem}/${S.sup}${S.pow?'':' ⚠️'}</span><span>😊 ${S.hap}%</span><span>🎓 ${S.edu}%</span><span>📦 ${f(gd)}</span><span>🌍 ${land}×${land}</span><span>✈ ${S.att} · ${vis} visits</span><span>${ms<MS.length?`🎯 ${MS[ms][1]} at ${f(MS[ms][0])} pop`:'🏆 Metropolis!'}</span><span>${who('me')}</span>`}
+function hud(){afford();polUI();$('#hud').innerHTML=`<span>💰 <b>$${f(cash)}</b> ${S.inc>=0?'+':''}${f(S.inc)}</span><span>👥 <b>${f(S.pop)}</b></span><span>💼 ${f(S.jobs)}</span><span>⚡ ${S.dem}/${S.sup}${S.pow?'':' ⚠️'}</span><span>😊 ${S.hap}%</span><span>🎓 ${S.edu}%</span><span>📦 ${f(gd)}</span><span>🌍 ${land}×${land}</span><span>✈ ${S.att} · ${vis} visits</span><span>${ms<MS.length?`🎯 ${MS[ms][1]} at ${f(MS[ms][0])} pop`:'🏆 Metropolis!'}</span><span>${who('me')}</span>`}
 
 /* ---------- building ---------- */
 let lastS=0;
@@ -310,20 +417,29 @@ function place(i){
   if(Date.now()-lastS>60){lastS=Date.now();sfx(tool?tool==1?'road':tool<5?'zone':'place':'del')}
   burst(i%N+.5,(i/N|0)+.5,tool?['#e7dcc3','#bfae8a','#fff']:['#8a8f98','#5b4a38'],tool==1?5:12);
   if(cost>=100)ftxt('-$'+f(cost),'#ffb4a2')}
-const CATS=[['🛠️ Basics',[0,1]],['🏘️ Zones',[2,3,4]],['⚡ Power',[5,14,15,16]],['🏛️ Government',[6,7,13]],['🎓 Education & health',[8,17,12,11,18]],['🌳 Leisure & tourism',[9,19,20,10]]];
-const TIP={5:'+40 power. Pollutes nearby homes',14:'+12 power. Clean and cheap',15:'+25 power. Clean',16:'+160 power. Neighbours feel uneasy',6:'Unlocks policies, boosts tax',7:'Raises happiness nearby',13:'Stops fires within 7 tiles',8:'Education + happiness nearby',17:'Small education boost',12:'Big education boost, draws tourists',11:'Big happiness boost nearby',18:'Cheap local health care',9:'Happiness + tourism',19:'Huge tourist draw',20:'Tourists + happiness',10:'Tourist magnet'};
-CATS.forEach(([n,ids],ci)=>{
-  const h=document.createElement('button'),bx=document.createElement('div');h.className='ch';h.textContent=n;bx.className='cb';bx.hidden=ci>0;
-  h.onclick=()=>{const o=bx.hidden;document.querySelectorAll('#tools .cb').forEach(x=>x.hidden=true);bx.hidden=!o};
+const CATS=[['🛠️','Basics','Roads and clearing',[0,1]],['🏘️','Zones','Where people live and work',[2,3,4]],['⚡','Power','Keep the lights on',[5,14,15,16]],['🏛️','Government','Safety and city services',[6,7,13]],['🎓','Education & health','Learning and care',[8,17,12,11,18]],['🌳','Leisure & tourism','Attract visitors',[9,19,20,10]]];
+const TIP={0:'Removes a building (free)',1:'Zones only grow beside powered roads',2:'Homes. More people, more taxes',3:'Shops. Jobs and extra income',4:'Factories. Jobs and goods, but they pollute',5:'+40 power. Pollutes nearby homes',14:'+12 power. Clean and cheap',15:'+25 power. Clean',16:'+160 power. Neighbours feel uneasy',6:'Unlocks policies, boosts tax',7:'Raises happiness nearby',13:'Stops fires within 7 tiles',8:'Education + happiness nearby',17:'Small education boost',12:'Big education boost, draws tourists',11:'Big happiness boost nearby',18:'Cheap local health care',9:'Happiness + tourism',19:'Huge tourist draw',20:'Tourists + happiness',10:'Tourist magnet'};
+const CH=[];
+const openCat=(c,v)=>CH.forEach(o=>{const s=o===c&&v;o.bx.hidden=!s;o.h.classList.toggle('open',s);o.h.setAttribute('aria-expanded',s)});
+function selTool(){const t=T[tool];
+  $('#sel').innerHTML=`<div class="sh"><span class="si">${t[1]}</span><div><b>${t[0]}</b><div class="mu">${t[2]?'Cost $'+f(t[2]):'Free'}</div></div></div><div class="mu">${TIP[tool]||''}</div>`;
+  document.querySelectorAll('#tools .tb').forEach(x=>x.classList.toggle('on',+x.dataset.i==tool));
+  CH.forEach(o=>o.h.classList.toggle('has',o.ids.includes(tool)))}
+function afford(){document.querySelectorAll('#tools .tb').forEach(b=>b.classList.toggle('cant',cash<T[+b.dataset.i][2]))}
+function polUI(){const pc=POL.reduce((a,p)=>a+(po(p[0])?p[2]:0),0);$('#pinfo').textContent=S.th?'Active policy upkeep: $'+f(pc)+'/tick':'🔒 Build a Town hall to unlock policies';$('#pol').classList.toggle('lock',!S.th)}
+CATS.forEach(([ic,n,ds,ids])=>{
+  const h=document.createElement('button'),bx=document.createElement('div'),c={h,bx,ids};CH.push(c);
+  h.className='ch';h.title=ds;h.innerHTML=`<span class="chev">▸</span><span>${ic} ${n}</span><span class="badge">${ids.length}</span>`;bx.className='cb';
+  h.onclick=()=>openCat(c,bx.hidden);
   ids.forEach(id=>{const t=T[id],b=document.createElement('button');b.className='tb';b.dataset.i=id;b.title=TIP[id]||t[0];
-    b.innerHTML=`<span>${t[1]} ${t[0]}</span><span class="mu">${t[2]?'$'+t[2]:''}</span>`;
-    b.onclick=()=>{tool=id;document.querySelectorAll('#tools .tb').forEach(x=>x.classList.toggle('on',+x.dataset.i==id));const z=id>1&&id<5;if(z&&!ov)setOv('z',1);else if(!z&&auto)setOv('',0)};bx.append(b)});
+    b.innerHTML=`<span>${t[1]} ${t[0]}</span><span class="mu">${t[2]?'$'+f(t[2]):'Free'}</span><span class="tp mu">${TIP[id]||''}</span>`;
+    b.onclick=()=>{tool=id;selTool();sfx('zone');const z=id>1&&id<5;if(z&&!ov)setOv('z',1);else if(!z&&auto)setOv('',0)};bx.append(b)});
   $('#tools').append(h,bx)});
-$('#tools .tb[data-i="1"]').classList.add('on');
+openCat(CH[0],1);selTool();
 $('#tools').insertAdjacentHTML('beforeend','<p class="mu" style="margin:4px 2px 0">Zones grow beside powered roads. Services lift happiness nearby; industry and coal plants drag it down.</p>');
 function setOv(v,a){ov=v;auto=a;$('#vw').value=v;Object.values(cities).forEach(o=>o.grid&&fill(o.m,boxes(o.grid,o.L,o===cities.me)))}
 $('#vw').onchange=e=>setOv(e.target.value,0);
-function syncUI(){for(const k in pcs)pcs[k].checked=!!pol[k];$('#tx').value=pol.tax}
+function syncUI(){for(const k in pcs)pcs[k].checked=!!pol[k];$('#tx').value=pol.tax;$('#sv2').value=pol.svc??1}
 /* expanding land */
 const LAND=[[16,600],[20,1200],[24,2200],[28,3500],[32,5000]],nextLand=()=>LAND.find(x=>x[0]>land);
 function exLabel(){const n=nextLand();$('#ex').hidden=!n;if(n)$('#ex').textContent=`🌍 Expand land to ${n[0]}×${n[0]} ($${f(n[1])})`}
@@ -354,9 +470,11 @@ function renderSaves(){
 $('#sm').onclick=$('#so').onclick=()=>{renderSaves();$('#sv').hidden=false};
 $('#sx').onclick=()=>{$('#sv').hidden=true};
 $('#nc').onclick=()=>{newCity($('#nn').value.trim());$('#nn').value='';renderSaves()};
-const pcs={};POL.forEach(([k,l,c,d])=>{const b=document.createElement('label');b.innerHTML=`<input type="checkbox"><span>${l} <small class="mu">$${c}/tick: ${d}</small></span>`;
-  const x=b.firstChild;x.checked=!!pol[k];pcs[k]=x;x.onchange=()=>{if(!S.th){x.checked=false;return toast('Build a Town hall to enact policies')}pol[k]=+x.checked;save()};$('#pol').append(b)});
+const pcs={};[...new Set(POL.map(p=>p[4]))].forEach(gn=>{const hd=document.createElement('div');hd.className='pg';hd.textContent=gn;$('#pol').append(hd);
+  POL.filter(p=>p[4]==gn).forEach(([k,l,c,d])=>{const b=document.createElement('label');b.title=d;b.innerHTML=`<input type="checkbox"><span>${l} <small class="mu">$${c}/tick · ${d}</small></span>`;
+    const x=b.firstChild;x.checked=!!pol[k];pcs[k]=x;x.onchange=()=>{if(!S.th){x.checked=false;return toast('Build a Town hall to enact policies')}pol[k]=+x.checked;sfx('zone');save();hud()};$('#pol').append(b)})});
 $('#tx').value=pol.tax;$('#tx').onchange=e=>{if(!S.th){e.target.value=1;return toast('Build a Town hall to change taxes')}pol.tax=+e.target.value;save()};
+$('#sv2').value=pol.svc??1;$('#sv2').onchange=e=>{if(!S.th){e.target.value=1;return toast('Build a Town hall to change the services budget')}pol.svc=+e.target.value;save()};
 
 /* ---------- toasts ---------- */
 function toast(msg,acts=[]){
