@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CityLink – multiplayer city builder</title>
+<style>
+:root{--bg:#10141a;--pn:#18202b;--ln:#2a3544;--tx:#e8ecf1;--mu:#8d9aab;--ac:#5eead4;--ink:#04201c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.4 "Trebuchet MS",system-ui,sans-serif}
+button,input,select{font:inherit;color:inherit;background:#222c3a;border:1px solid var(--ln);border-radius:8px;padding:8px 10px}
+button{cursor:pointer}button:hover,input:focus,select:focus{border-color:var(--ac);outline:0}
+button:focus-visible{outline:2px solid var(--ac)}
+.pri{background:var(--ac);color:var(--ink);border-color:var(--ac);font-weight:700}
+.mu{color:var(--mu);font-size:12px}
+#lobby{min-height:100vh;display:grid;place-items:center;padding:16px}
+.box{background:var(--pn);border:1px solid var(--ln);border-radius:18px;padding:26px;width:min(390px,100%);display:grid;gap:12px}
+h1{margin:0;font:800 34px/1 Georgia,serif;letter-spacing:-1px}h1 i{color:var(--ac)}
+.row{display:flex;gap:8px}.row>*{min-width:0}.row input{flex:1}
+#cd{text-transform:uppercase;letter-spacing:4px;text-align:center}
+#game{display:none;padding:10px;gap:10px;grid-template-columns:160px minmax(0,1fr) 290px;align-items:start}
+#top{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:8px 12px}
+#hud{display:flex;flex-wrap:wrap;gap:4px 16px;flex:1}#hud b{color:var(--ac)}
+#rm{font-weight:700;color:var(--ac)}
+#tools{display:grid;gap:4px;background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:8px}
+#tools button{display:flex;justify-content:space-between;gap:6px;padding:6px 8px;text-align:left}
+#tools button.on{background:var(--ac);color:var(--ink);border-color:var(--ac)}
+#tools .on .mu{color:var(--ink)}
+canvas{display:block}
+#cv{width:100%;max-width:768px;border-radius:12px;border:1px solid var(--ln);touch-action:none;cursor:crosshair}
+#others{display:grid;gap:10px}
+.oc{background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:10px;display:grid;gap:6px}
+.oc h3{margin:0;font-size:15px}.oc canvas{width:100%;border-radius:8px;image-rendering:pixelated}
+.tr{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.tr input{width:62px;padding:6px}.tr select{padding:6px 2px}
+#toasts{position:fixed;right:12px;bottom:12px;display:grid;gap:8px;z-index:9;max-width:min(340px,92vw)}
+.t{background:#223044;border:1px solid var(--ac);border-radius:10px;padding:10px 12px;display:grid;gap:8px}
+@media(max-width:900px){#game{grid-template-columns:1fr}#tools{grid-template-columns:repeat(auto-fill,minmax(135px,1fr))}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+</head>
+<body>
+<div id="lobby"><div class="box">
+  <h1>City<i>Link</i></h1>
+  <p class="mu" style="margin:0;font-size:14px">Build your own city, then visit friends' cities, trade goods and send tourists in a shared room.</p>
+  <input id="nm" maxlength="16" placeholder="Your city name">
+  <button class="pri" id="mk">Create room</button>
+  <div class="row"><input id="cd" maxlength="5" placeholder="CODE"><button id="jn">Join room</button></div>
+  <button id="solo">Play solo</button>
+  <p class="mu" style="margin:0">Your city is saved in this browser. Rooms are peer-to-peer, so the host keeps the tab open.</p>
+</div></div>
+
+<div id="game">
+  <div id="top"><div id="hud"></div><span id="rm"></span><button id="cp">Copy invite link</button><button id="rs">Reset city</button><button id="lv">Leave</button></div>
+  <div id="tools"></div>
+  <canvas id="cv"></canvas>
+  <div id="others"><p class="mu" id="emp">Nobody else is here yet. Copy the invite link and send it to a friend.</p></div>
+</div>
+<div id="toasts"></div>
+
+<script>
+const $=s=>document.querySelector(s),N=24,TS=32,PFX='citylink-',f=n=>Math.round(n||0).toLocaleString();
+// tool index = tile type
+const T=[['Bulldoze','🧹',0],['Road','🛣️',10],['Residential','🏠',15],['Commercial','🏪',15],['Industrial','🏭',15],['Power plant','⚡',400],['Town hall','🏛️',600],['Police','🚓',250],['School','🎓',250],['Park','🌳',60],['Landmark','🗼',1500]];
+const K=['','rd','r','c','i','pw','th','pl','sc','pk','lm'];
+const ZC={2:'#34d399',3:'#60a5fa',4:'#fbbf24'},GC={5:'#ef4444',6:'#f59e0b',7:'#3b82f6',8:'#fb923c',9:'#4ade80',10:'#c084fc'};
+let G=new Array(N*N).fill(0),cash=5000,gd=0,vis=0,name='',tool=1,hov=-1,down=0,S={},lastW=0;
+let peer,isHost=0,hc=null,conns={},others={},cards={},myId='',room='',tcd={};
+const enc=g=>g.map(v=>String.fromCharCode(48+v)).join(''),dec=s=>[...s].map(c=>c.charCodeAt(0)-48);
+
+/* ---------- local save ---------- */
+try{const d=JSON.parse(localStorage.getItem('citylink'));if(d){G=dec(d.g);cash=d.c;gd=d.gd;vis=d.v;name=d.n}}catch(e){}
+const save=()=>{try{localStorage.setItem('citylink',JSON.stringify({g:enc(G),c:cash,gd,v:vis,n:name}))}catch(e){}};
+
+/* ---------- drawing ---------- */
+function draw(cv,g,ts,hv){
+  cv.width=cv.height=N*ts;const x=cv.getContext('2d');
+  const rd=j=>j>=0&&j<N*N&&g[j]>>2==1;
+  g.forEach((v,i)=>{
+    const t=v>>2,l=v&3,c=i%N,r=i/N|0,X=c*ts,Y=r*ts;
+    x.fillStyle=(c+r)%2?'#6aa65a':'#72ad60';x.fillRect(X,Y,ts,ts);
+    if(t==1){
+      x.fillStyle='#3a3d4a';x.fillRect(X,Y,ts,ts);
+      if(ts>=12){x.fillStyle='#f2cf66';const m=ts/2-1;
+        if((c>0&&rd(i-1))||(c<N-1&&rd(i+1)))x.fillRect(X,Y+m,ts,2);
+        if(rd(i-N)||rd(i+N))x.fillRect(X+m,Y,2,ts)}
+    }else if(t>1&&t<5){
+      x.fillStyle=ZC[t];x.globalAlpha=.4;x.fillRect(X,Y,ts,ts);x.globalAlpha=1;
+      if(l){const p=ts*(.34-.08*l);x.fillRect(X+p,Y+p,ts-2*p,ts-2*p);x.fillStyle='#0005';x.fillRect(X+p,Y+ts-p-ts*.12,ts-2*p,ts*.12)}
+    }else if(t>4){
+      x.fillStyle=GC[t];x.fillRect(X+1,Y+1,ts-2,ts-2);
+      if(ts>=16){x.font=ts*.65+'px sans-serif';x.textAlign='center';x.fillText(T[t][1],X+ts/2,Y+ts*.74)}
+    }
+  });
+  if(hv>=0){x.strokeStyle='#fff';x.lineWidth=2;x.strokeRect(hv%N*ts+1,(hv/N|0)*ts+1,ts-2,ts-2)}
+}
+
+/* ---------- simulation ---------- */
+const near=i=>{const c=i%N;return(c>0&&G[i-1]>>2==1)||(c<N-1&&G[i+1]>>2==1)||(i>=N&&G[i-N]>>2==1)||(i<N*N-N&&G[i+N]>>2==1)};
+function calc(){
+  const s={r:0,c:0,i:0,rd:0,pw:0,th:0,pl:0,sc:0,pk:0,lm:0};
+  G.forEach(v=>{const t=v>>2;if(t)s[K[t]]+=t>1&&t<5?v&3:1});
+  s.pop=s.r*8;s.jobs=s.c*6+s.i*8;s.sup=s.pw*40;s.dem=(s.r+s.c+s.i)*2;s.pow=s.sup>=s.dem;
+  s.hap=Math.round(Math.max(0,Math.min(100,60+100*(s.pk*2+s.pl+s.sc+s.th)/Math.max(30,s.pop)-s.i*1.5-(s.pow?0:25))));
+  s.att=s.pk+s.lm*5+(s.hap>70?3:0);return s}
+function tick(){
+  S=calc();
+  G.forEach((v,i)=>{const t=v>>2;
+    if(t>1&&t<5&&(v&3)<3&&S.pow&&near(i)&&Math.random()<.2){
+      const d=t==2?S.jobs-S.pop+24:t==3?S.pop*.5-S.c*6+6:S.pop*.4-S.i*8+10;if(d>0)G[i]++}});
+  gd=Math.max(0,Math.min(300,gd+S.i*1.5-S.c));
+  const inc=S.pop*.2*(1+S.th*.25)*S.hap/70+S.c*2.2*(gd>0?1:.5)+S.i*2-(S.rd*.2+S.pw*6+S.th*5+S.pl*3+S.sc*3+S.pk+S.lm*8);
+  cash=Math.max(0,cash+inc);S=calc();S.inc=inc;
+  hud();draw($('#cv'),G,TS,hov);save();if(room)send(snap())}
+function hud(){$('#hud').innerHTML=`<span>💰 <b>$${f(cash)}</b> ${S.inc>=0?'+':''}${f(S.inc)}</span><span>👥 <b>${f(S.pop)}</b></span><span>💼 ${f(S.jobs)}</span><span>⚡ ${S.dem}/${S.sup}${S.pow?'':' ⚠️'}</span><span>😊 ${S.hap}%</span><span>📦 ${f(gd)}</span><span>✈ ${S.att} · ${vis} visits</span>`}
+
+/* ---------- building ---------- */
+const cv=$('#cv');
+const cellAt=e=>{const r=cv.getBoundingClientRect(),c=Math.floor((e.clientX-r.left)/r.width*N),w=Math.floor((e.clientY-r.top)/r.height*N);return c<0||w<0||c>=N||w>=N?-1:w*N+c};
+function place(i){
+  if(i<0||G[i]>>2==tool)return;const cost=T[tool][2];
+  if(cash<cost){if(Date.now()-lastW>1500){lastW=Date.now();toast('Not enough cash')}return}
+  cash-=cost;G[i]=tool<<2;hud();draw(cv,G,TS,hov)}
+cv.onpointerdown=e=>{down=1;cv.setPointerCapture(e.pointerId);place(hov=cellAt(e))};
+cv.onpointermove=e=>{hov=cellAt(e);if(down)place(hov);else draw(cv,G,TS,hov)};
+cv.onpointerup=()=>{down=0;save()};
+cv.onpointerleave=()=>{down=0;hov=-1;draw(cv,G,TS,-1);save()};
+T.forEach((t,i)=>{const b=document.createElement('button');
+  b.innerHTML=`<span>${t[1]} ${t[0]}</span><span class="mu">${t[2]?'$'+t[2]:''}</span>`;
+  b.onclick=()=>{tool=i;[...$('#tools').children].forEach((x,j)=>x.classList.toggle('on',j==i))};$('#tools').append(b)});
+$('#tools').children[1].classList.add('on');
+$('#tools').insertAdjacentHTML('beforeend','<p class="mu" style="margin:4px 2px 0">Drag to paint. Zones grow when next to a road and powered. Parks, police and schools raise happiness.</p>');
+
+/* ---------- toasts ---------- */
+function toast(msg,acts=[]){
+  const e=document.createElement('div');e.className='t';const s=document.createElement('span');s.textContent=msg;e.append(s);
+  if(acts.length){const r=document.createElement('div');r.className='row';
+    acts.forEach(([l,fn])=>{const b=document.createElement('button');b.textContent=l;b.onclick=()=>{e.remove();fn&&fn()};r.append(b)});e.append(r)}
+  $('#toasts').append(e);setTimeout(()=>e.remove(),acts.length?30000:4000)}
+
+/* ---------- networking (PeerJS, host relays) ---------- */
+const snap=()=>({t:'s',from:myId,n:name,g:enc(G),c:Math.round(cash),p:S.pop,a:S.att,gd:Math.round(gd),h:S.hap});
+function send(m){m.from=myId;
+  if(isHost){if(m.to)conns[m.to]&&conns[m.to].send(m);else Object.values(conns).forEach(c=>c.send(m))}
+  else hc&&hc.send(m)}
+function route(m){
+  if(m.to&&m.to!=myId){conns[m.to]&&conns[m.to].send(m);return}
+  handle(m);if(!m.to)Object.values(conns).forEach(c=>c.peer!=m.from&&c.send(m))}
+const rcode=()=>Array.from({length:5},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.random()*24|0]).join('');
+function mkHost(n=0){
+  if(typeof Peer=='undefined')return toast('Could not load the network library. Check your connection.');
+  room=rcode();peer=new Peer(PFX+room);
+  peer.on('open',id=>{myId=id;isHost=1;start()});
+  peer.on('connection',c=>{
+    c.on('open',()=>{conns[c.peer]=c;c.send({t:'sync',l:[snap(),...Object.values(others)]})});
+    c.on('data',m=>{m.from=c.peer;route(m)});
+    c.on('close',()=>{delete conns[c.peer];rm(c.peer);Object.values(conns).forEach(k=>k.send({t:'x',from:c.peer}))})});
+  peer.on('error',e=>e.type=='unavailable-id'&&n<5?mkHost(n+1):toast('Network error: '+e.type))}
+function mkJoin(code){
+  if(typeof Peer=='undefined')return toast('Could not load the network library. Check your connection.');
+  peer=new Peer();
+  peer.on('open',id=>{myId=id;room=code;const c=peer.connect(PFX+code,{reliable:true});
+    c.on('open',()=>{hc=c;start()});
+    c.on('data',handle);
+    c.on('close',()=>{hc=null;Object.keys(others).forEach(rm);toast('The host left the room. Your city is saved.')})});
+  peer.on('error',e=>{room='';toast(e.type=='peer-unavailable'?'Room '+code+' was not found. Check the code.':'Network error: '+e.type)})}
+function rm(id){delete others[id];if(cards[id]){cards[id].remove();delete cards[id]}if(!Object.keys(cards).length)$('#emp').style.display=''}
+
+function card(id){
+  const m=others[id];let c=cards[id];
+  if(!c){c=cards[id]=document.createElement('div');c.className='oc';
+    c.innerHTML='<h3></h3><canvas></canvas><div class="mu st"></div><div class="tr"><select><option value="s">Sell<option value="b">Buy</select><input type="number" min="1" value="20"> 📦 for $<input type="number" min="0" value="100"><button>Offer</button></div><button>✈ Send tourists ($25)</button>';
+    const [sel,gi,pi]=c.querySelectorAll('select,input'),[ob,tb]=c.querySelectorAll('button');
+    ob.onclick=()=>{const g=+gi.value,p=+pi.value,d=sel.value;if(!(g>0)||!(p>=0))return;
+      if(d=='s'&&gd<g)return toast('You only have '+f(gd)+' goods');
+      if(d=='b'&&cash<p)return toast('Not enough cash');
+      send({t:'offer',to:id,g,p,d,n:name});toast('Offer sent to '+others[id].n)};
+    tb.onclick=()=>{if(Date.now()<(tcd[id]||0))return toast('Tourists are still on their way');
+      if(cash<25)return toast('Not enough cash');cash-=25;tcd[id]=Date.now()+15000;hud();send({t:'tour',to:id,n:name})};
+    $('#others').append(c);$('#emp').style.display='none'}
+  c.querySelector('h3').textContent=m.n;draw(c.querySelector('canvas'),dec(m.g),6);
+  c.querySelector('.st').textContent=`👥 ${f(m.p)}  😊 ${m.h}%  ✈ ${m.a}  📦 ${m.gd}  💰 $${f(m.c)}`}
+
+function handle(m){
+  if(m.t=='s'){if(m.from==myId)return;others[m.from]=m;card(m.from)}
+  else if(m.t=='sync')m.l.forEach(handle);
+  else if(m.t=='x')rm(m.from);
+  else if(m.t=='offer'){const sell=m.d=='s';
+    toast(`${m.n} wants to ${sell?'sell you':'buy from you'} ${m.g} goods for $${f(m.p)}`,[
+      ['Accept',()=>{
+        if(sell){if(cash<m.p)return toast('Not enough cash');cash-=m.p;gd+=m.g}
+        else{if(gd<m.g)return toast('Not enough goods');gd-=m.g;cash+=m.p}
+        send({t:'ok',to:m.from,g:m.g,p:m.p,d:m.d,n:name});hud()}],['Decline']])}
+  else if(m.t=='ok'){
+    if(m.d=='s'){gd=Math.max(0,gd-m.g);cash+=m.p}else{gd+=m.g;cash=Math.max(0,cash-m.p)}
+    hud();toast(m.n+' accepted your trade')}
+  else if(m.t=='tour'){const g=25+S.att*8;cash+=g;vis++;hud();toast(`✈ Tourists from ${m.n} spent $${g} in your city`);send({t:'tk',to:m.from,r:g,n:name})}
+  else if(m.t=='tk'){const b=Math.floor(m.r*.4);cash+=b;hud();toast(`Your tourists loved ${m.n}. Tour fees: +$${b}`)}}
+
+/* ---------- lobby ---------- */
+function start(){
+  $('#lobby').style.display='none';$('#game').style.display='grid';
+  $('#rm').textContent=room?'Room '+room:'Solo';$('#cp').style.display=room?'':'none';
+  S=calc();S.inc=0;hud();draw(cv,G,TS);if(room)send(snap());
+  if(!window.tm)window.tm=setInterval(tick,2000);
+  toast('Lay roads, zone beside them, then add a ⚡ power plant.')}
+const go=fn=>{name=($('#nm').value.trim()||'City '+(100+Math.random()*900|0)).slice(0,16);save();fn()};
+$('#nm').value=name;
+const q=new URLSearchParams(location.search).get('room');if(q)$('#cd').value=q.toUpperCase().slice(0,5);
+$('#mk').onclick=()=>go(mkHost);
+$('#jn').onclick=()=>{const c=$('#cd').value.trim().toUpperCase();if(c.length<5)return toast('Enter the 5-letter room code');go(()=>mkJoin(c))};
+$('#solo').onclick=()=>go(start);
+$('#cp').onclick=()=>{navigator.clipboard.writeText(location.origin+location.pathname+'?room='+room).then(()=>toast('Invite link copied'),()=>toast('Room code: '+room))};
+$('#lv').onclick=()=>{save();location.reload()};
+$('#rs').onclick=()=>{if(confirm('Delete your saved city and start over?')){localStorage.removeItem('citylink');location.reload()}};
+</script>
+</body>
+</html>
